@@ -5,7 +5,8 @@ services:
   - type: web
     name: qualia-bet-market
     runtime: python
-    plan: starter            # 'free' hibernates; 'starter' stays warm (fixes the 502s)
+    plan: free               # testing. NOTE: free spins down when idle (cold starts,
+                             # like Manus). Switch to 'starter' to stay warm in production.
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
     healthCheckPath: /health
