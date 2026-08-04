@@ -1,0 +1,33 @@
+{
+  "_note": "Best-effort fighter stat estimates (0-1 scales) used by the BASELINE model. Replace with a real stats feed for production accuracy.",
+
+  "Islam Makhachev":    { "avg_fight_duration": 14.0, "knockdown_rate": 0.30, "takedown_success_rate": 0.62, "strike_defense": 0.63, "striking_balance": 0.58, "finish_rate": 0.55, "takedown_defense": 0.90, "clinch_control": 0.72, "ground_control": 0.88 },
+  "Ian Machado Garry":  { "avg_fight_duration": 13.0, "knockdown_rate": 0.22, "takedown_success_rate": 0.35, "strike_defense": 0.60, "striking_balance": 0.57, "finish_rate": 0.45, "takedown_defense": 0.72, "clinch_control": 0.55, "ground_control": 0.50 },
+
+  "Mackenzie Dern":     { "avg_fight_duration": 13.5, "knockdown_rate": 0.10, "takedown_success_rate": 0.48, "strike_defense": 0.52, "striking_balance": 0.50, "finish_rate": 0.60, "takedown_defense": 0.55, "clinch_control": 0.58, "ground_control": 0.90 },
+  "Virna Jandiroba":    { "avg_fight_duration": 13.0, "knockdown_rate": 0.06, "takedown_success_rate": 0.52, "strike_defense": 0.50, "striking_balance": 0.44, "finish_rate": 0.42, "takedown_defense": 0.58, "clinch_control": 0.55, "ground_control": 0.80 },
+
+  "Charles Oliveira":   { "avg_fight_duration": 12.0, "knockdown_rate": 0.34, "takedown_success_rate": 0.45, "strike_defense": 0.53, "striking_balance": 0.56, "finish_rate": 0.82, "takedown_defense": 0.60, "clinch_control": 0.62, "ground_control": 0.85 },
+  "Justin Gaethje":     { "avg_fight_duration": 12.5, "knockdown_rate": 0.42, "takedown_success_rate": 0.30, "strike_defense": 0.55, "striking_balance": 0.60, "finish_rate": 0.70, "takedown_defense": 0.78, "clinch_control": 0.50, "ground_control": 0.45 },
+
+  "Dricus du Plessis":  { "avg_fight_duration": 14.5, "knockdown_rate": 0.36, "takedown_success_rate": 0.50, "strike_defense": 0.54, "striking_balance": 0.55, "finish_rate": 0.68, "takedown_defense": 0.70, "clinch_control": 0.68, "ground_control": 0.72 },
+  "Nassourdine Imavov": { "avg_fight_duration": 14.0, "knockdown_rate": 0.28, "takedown_success_rate": 0.42, "strike_defense": 0.62, "striking_balance": 0.58, "finish_rate": 0.50, "takedown_defense": 0.68, "clinch_control": 0.55, "ground_control": 0.58 },
+
+  "Movsar Evloev":      { "avg_fight_duration": 15.0, "knockdown_rate": 0.14, "takedown_success_rate": 0.66, "strike_defense": 0.61, "striking_balance": 0.56, "finish_rate": 0.35, "takedown_defense": 0.82, "clinch_control": 0.70, "ground_control": 0.78 },
+  "Lerone Murphy":      { "avg_fight_duration": 14.0, "knockdown_rate": 0.24, "takedown_success_rate": 0.44, "strike_defense": 0.60, "striking_balance": 0.57, "finish_rate": 0.48, "takedown_defense": 0.72, "clinch_control": 0.58, "ground_control": 0.60 },
+
+  "Umar Nurmagomedov":  { "avg_fight_duration": 14.0, "knockdown_rate": 0.20, "takedown_success_rate": 0.58, "strike_defense": 0.66, "striking_balance": 0.58, "finish_rate": 0.45, "takedown_defense": 0.85, "clinch_control": 0.68, "ground_control": 0.80 },
+  "Cory Sandhagen":     { "avg_fight_duration": 14.5, "knockdown_rate": 0.26, "takedown_success_rate": 0.38, "strike_defense": 0.62, "striking_balance": 0.59, "finish_rate": 0.52, "takedown_defense": 0.74, "clinch_control": 0.56, "ground_control": 0.55 },
+
+  "Ciryl Gane":         { "avg_fight_duration": 13.5, "knockdown_rate": 0.30, "takedown_success_rate": 0.36, "strike_defense": 0.64, "striking_balance": 0.60, "finish_rate": 0.55, "takedown_defense": 0.70, "clinch_control": 0.60, "ground_control": 0.52 },
+  "Sergei Pavlovich":   { "avg_fight_duration": 10.0, "knockdown_rate": 0.48, "takedown_success_rate": 0.20, "strike_defense": 0.48, "striking_balance": 0.55, "finish_rate": 0.85, "takedown_defense": 0.62, "clinch_control": 0.45, "ground_control": 0.40 },
+
+  "Brandon Royval":     { "avg_fight_duration": 13.0, "knockdown_rate": 0.24, "takedown_success_rate": 0.44, "strike_defense": 0.52, "striking_balance": 0.53, "finish_rate": 0.62, "takedown_defense": 0.55, "clinch_control": 0.54, "ground_control": 0.68 },
+  "Amir Albazi":        { "avg_fight_duration": 13.5, "knockdown_rate": 0.18, "takedown_success_rate": 0.50, "strike_defense": 0.55, "striking_balance": 0.52, "finish_rate": 0.55, "takedown_defense": 0.60, "clinch_control": 0.58, "ground_control": 0.72 },
+
+  "Shavkat Rakhmonov":  { "avg_fight_duration": 11.5, "knockdown_rate": 0.32, "takedown_success_rate": 0.60, "strike_defense": 0.60, "striking_balance": 0.58, "finish_rate": 0.95, "takedown_defense": 0.80, "clinch_control": 0.66, "ground_control": 0.82 },
+  "Michael Morales":    { "avg_fight_duration": 12.5, "knockdown_rate": 0.28, "takedown_success_rate": 0.40, "strike_defense": 0.58, "striking_balance": 0.56, "finish_rate": 0.60, "takedown_defense": 0.68, "clinch_control": 0.55, "ground_control": 0.52 },
+
+  "Kayla Harrison":     { "avg_fight_duration": 13.0, "knockdown_rate": 0.16, "takedown_success_rate": 0.68, "strike_defense": 0.54, "striking_balance": 0.50, "finish_rate": 0.62, "takedown_defense": 0.72, "clinch_control": 0.70, "ground_control": 0.88 },
+  "Raquel Pennington":  { "avg_fight_duration": 15.0, "knockdown_rate": 0.10, "takedown_success_rate": 0.40, "strike_defense": 0.52, "striking_balance": 0.48, "finish_rate": 0.32, "takedown_defense": 0.60, "clinch_control": 0.58, "ground_control": 0.58 }
+}

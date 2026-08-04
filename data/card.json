@@ -1,0 +1,17 @@
+{
+  "event": "UFC 330: Makhachev vs. Machado Garry",
+  "event_date": "2026-08-15",
+  "is_ppv": true,
+  "fights": [
+    { "weight_class": "Welterweight", "fighter_a": "Islam Makhachev", "fighter_b": "Ian Machado Garry", "main_event": true },
+    { "weight_class": "Women's Strawweight", "fighter_a": "Mackenzie Dern", "fighter_b": "Virna Jandiroba" },
+    { "weight_class": "Lightweight", "fighter_a": "Charles Oliveira", "fighter_b": "Justin Gaethje" },
+    { "weight_class": "Middleweight", "fighter_a": "Dricus du Plessis", "fighter_b": "Nassourdine Imavov" },
+    { "weight_class": "Featherweight", "fighter_a": "Movsar Evloev", "fighter_b": "Lerone Murphy" },
+    { "weight_class": "Bantamweight", "fighter_a": "Umar Nurmagomedov", "fighter_b": "Cory Sandhagen" },
+    { "weight_class": "Heavyweight", "fighter_a": "Ciryl Gane", "fighter_b": "Sergei Pavlovich" },
+    { "weight_class": "Flyweight", "fighter_a": "Brandon Royval", "fighter_b": "Amir Albazi" },
+    { "weight_class": "Welterweight", "fighter_a": "Shavkat Rakhmonov", "fighter_b": "Michael Morales" },
+    { "weight_class": "Women's Bantamweight", "fighter_a": "Kayla Harrison", "fighter_b": "Raquel Pennington" }
+  ]
+}
