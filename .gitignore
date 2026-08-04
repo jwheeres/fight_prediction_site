@@ -6,3 +6,5 @@ __pycache__/
 logs/
 data/results.json
 .env
+models/*.pkl
+data/fights_synth.csv

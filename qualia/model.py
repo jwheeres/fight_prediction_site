@@ -1,17 +1,17 @@
 """Fight win-probability model.
 
-IMPORTANT: the repo's `rf_h2h_model_updated.pkl` is NOT a trained model — it
-deserializes to a NumPy array of 16 feature *names* (the schema a model would
-expect). So this module does two things:
+Two modes, resolved at import time:
 
-  1. Loads that schema from the pkl (so we're grounded in the real artifact and
-     will notice if it changes).
-  2. Provides a transparent, deterministic BASELINE predictor over those
-     features. It is intentionally simple and explainable — not a black box —
-     and clearly labeled as a baseline until a real trained model is supplied.
+  1. TRAINED model — if models/h2h_model.pkl exists (produced by
+     qualia/train.py on a real dataset), it is loaded and used. This is a real
+     scikit-learn estimator plus the feature order it was trained on.
 
-To plug in a real model later, replace `win_probability` with a call into your
-trained estimator; keep the same signature and the rest of the app is unchanged.
+  2. BASELINE — otherwise, a transparent, deterministic fallback so the app
+     always runs. Clearly labeled as a baseline, not a trained model.
+
+The repo's original rf_h2h_model_updated.pkl is NOT a model — it's the 16
+feature *names* a model should expect. We still read it as the canonical
+feature schema so training and inference agree on column order.
 """
 
 from __future__ import annotations
@@ -20,26 +20,22 @@ import math
 import pickle
 from pathlib import Path
 
-MODEL_FILE = Path(__file__).resolve().parent.parent / "rf_h2h_model_updated.pkl"
+ROOT = Path(__file__).resolve().parent.parent
+SCHEMA_FILE = ROOT / "rf_h2h_model_updated.pkl"
+TRAINED_FILE = ROOT / "models" / "h2h_model.pkl"
 
-# Per-fighter stat weights for the baseline. Positive = higher is better.
-# These are sensible priors, not fitted coefficients — hence "baseline".
+# Per-fighter stat weights for the BASELINE. Positive = higher is better.
 _WEIGHTS = {
-    "striking_balance": 2.4,       # striking accuracy / output balance
-    "finish_rate": 1.8,            # ability to end fights
-    "strike_defense": 1.6,         # not getting hit
-    "takedown_success_rate": 1.1,  # grappling offense
-    "takedown_defense": 1.1,       # grappling defense
-    "knockdown_rate": 1.3,         # power
-    "ground_control": 0.9,
-    "clinch_control": 0.7,
+    "striking_balance": 2.4, "finish_rate": 1.8, "strike_defense": 1.6,
+    "takedown_success_rate": 1.1, "takedown_defense": 1.1, "knockdown_rate": 1.3,
+    "ground_control": 0.9, "clinch_control": 0.7,
 }
 
 
 def load_feature_schema() -> list[str]:
-    """Return the 16 feature names stored in the pkl (the real artifact)."""
+    """The 16 feature names stored in the original pkl (canonical column order)."""
     try:
-        obj = pickle.loads(MODEL_FILE.read_bytes())
+        obj = pickle.loads(SCHEMA_FILE.read_bytes())
         return [str(x) for x in list(obj)]
     except Exception:
         return []
@@ -48,23 +44,8 @@ def load_feature_schema() -> list[str]:
 FEATURE_SCHEMA = load_feature_schema()
 
 
-def _fighter_score(stats: dict) -> float:
-    return sum(weight * float(stats.get(stat, 0.0)) for stat, weight in _WEIGHTS.items())
-
-
-def win_probability(stats_a: dict, stats_b: dict) -> float:
-    """P(fighter A beats fighter B) from their stats, in (0, 1).
-
-    Baseline: logistic of the weighted skill-score difference. Deterministic
-    and monotonic in each stat, so results are explainable.
-    """
-    diff = _fighter_score(stats_a) - _fighter_score(stats_b)
-    # Scale so a ~1.0 score edge maps to a meaningful (but not extreme) prob.
-    return 1.0 / (1.0 + math.exp(-diff))
-
-
 def build_feature_row(stats_a: dict, stats_b: dict) -> dict:
-    """Assemble the 16-feature row matching the pkl schema (for inspection/debug)."""
+    """Assemble the 16-feature row (schema-named) from two fighters' stats."""
     return {
         "f1_avg_fight_duration": stats_a.get("avg_fight_duration", 0.0),
         "f2_avg_fight_duration": stats_b.get("avg_fight_duration", 0.0),
@@ -83,3 +64,45 @@ def build_feature_row(stats_a: dict, stats_b: dict) -> dict:
         "f1_finish_rate": stats_a.get("finish_rate", 0.0),
         "f2_finish_rate": stats_b.get("finish_rate", 0.0),
     }
+
+
+# ---- Trained-model loading (optional) --------------------------------------
+_TRAINED = None
+MODEL_KIND = "baseline"
+
+def _try_load_trained():
+    global _TRAINED, MODEL_KIND
+    if not TRAINED_FILE.exists():
+        return
+    try:
+        bundle = pickle.loads(TRAINED_FILE.read_bytes())
+        # bundle = {"model": estimator, "features": [...], "kind": "...", ...}
+        est = bundle["model"]
+        feats = bundle.get("features") or FEATURE_SCHEMA
+        classes = list(getattr(est, "classes_", [0, 1]))
+        pos_index = classes.index(1) if 1 in classes else len(classes) - 1
+        _TRAINED = {"est": est, "features": feats, "pos_index": pos_index}
+        MODEL_KIND = bundle.get("kind", "trained")
+    except Exception:
+        _TRAINED = None
+        MODEL_KIND = "baseline"
+
+_try_load_trained()
+
+
+def _baseline_prob(stats_a: dict, stats_b: dict) -> float:
+    score = lambda s: sum(w * float(s.get(k, 0.0)) for k, w in _WEIGHTS.items())
+    return 1.0 / (1.0 + math.exp(-(score(stats_a) - score(stats_b))))
+
+
+def win_probability(stats_a: dict, stats_b: dict) -> float:
+    """P(fighter A beats fighter B), in (0, 1).
+
+    Uses the trained model if one is loaded, else the baseline.
+    """
+    if _TRAINED is not None:
+        row = build_feature_row(stats_a, stats_b)
+        vector = [[float(row.get(name, 0.0)) for name in _TRAINED["features"]]]
+        proba = _TRAINED["est"].predict_proba(vector)[0]
+        return float(proba[_TRAINED["pos_index"]])
+    return _baseline_prob(stats_a, stats_b)

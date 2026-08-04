@@ -111,7 +111,7 @@ def build_card(force_refresh: bool = False) -> dict:
         "is_ppv": card.get("is_ppv", False),
         "odds_source": odds_data["source"],
         "odds_fetched_at": odds_data["fetched_at"],
-        "model_kind": "baseline",  # honest: not a trained model yet
+        "model_kind": model.MODEL_KIND,  # 'baseline' until a real model is trained
         "summary": {
             "predictions": len(fights_out),
             "events": 1,
