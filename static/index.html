@@ -45,6 +45,7 @@
   .hero-title { font-size: clamp(34px,9vw,54px); text-wrap: balance; }
   .hero-stats { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px 10px; text-transform: uppercase; letter-spacing: 0.13em; font-size: 11.5px; font-weight: 700; color: var(--faint); }
   .hero-stats b { color: var(--muted); font-weight: 800; }
+  .hero-tagline { margin: 8px 0 0; color: var(--gold); font-size: 13.5px; font-weight: 600; letter-spacing: 0.01em; }
 
   .freshbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 12px 14px; margin: 4px 0 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); font-size: 12px; }
   .fresh-item { display: inline-flex; align-items: center; gap: 7px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; color: var(--muted); }
@@ -113,6 +114,32 @@
   .v.lead { color: var(--text); } .v.trail { color: var(--muted); }
   .v.mk-lead { color: var(--blue); } .v.mk-trail { color: var(--muted); }
   .noline { color: var(--faint); font-size: 13px; font-style: italic; }
+  .edge-line { margin-top: 14px; padding: 10px 12px; border-radius: 9px; font-size: 12.5px; font-weight: 700; display: flex; gap: 8px; align-items: center; }
+  .edge-line span { font-size: 11px; }
+  .edge-line.model { color: var(--gold); background: rgba(245,179,1,0.08); border: 1px solid rgba(245,179,1,0.25); }
+  .edge-line.market { color: var(--blue); background: rgba(91,124,250,0.08); border: 1px solid rgba(91,124,250,0.25); }
+
+  /* Track record (past results) */
+  .tr-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 8px 0 26px; }
+  .tr-stat { border: 1px solid var(--border); border-radius: 14px; padding: 20px; background: var(--surface); }
+  .tr-stat .big { font-family: var(--font-display); font-weight: 800; font-size: 40px; color: var(--ivory); line-height: 1; }
+  .tr-stat .lbl { text-transform: uppercase; letter-spacing: 0.12em; font-size: 11px; font-weight: 700; color: var(--muted); margin-top: 8px; }
+  .tr-stat .sub2 { color: var(--faint); font-size: 12px; margin-top: 4px; }
+  .tr-stat.hc { border-color: rgba(245,179,1,0.3); background: linear-gradient(180deg, rgba(245,179,1,0.05), rgba(255,255,255,0.006)); }
+  .tr-stat.hc .big { color: var(--gold); }
+  .tr-event-title { font-size: clamp(22px,6vw,30px); margin: 26px 0 4px; }
+  .tr-event-date { color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; font-size: 11.5px; font-weight: 700; margin-bottom: 14px; }
+  .result-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg-2); margin-bottom: 10px; }
+  .result-mark { width: 26px; height: 26px; flex: none; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 14px; }
+  .result-mark.ok { color: var(--green); border: 1.5px solid var(--green); }
+  .result-mark.no { color: var(--red); border: 1.5px solid var(--red); }
+  .result-body { flex: 1; min-width: 0; }
+  .result-fight { font-weight: 700; font-size: 14.5px; }
+  .result-fight .win { color: var(--ivory); }
+  .result-fight .lose { color: var(--faint); text-decoration: line-through; }
+  .result-meta { color: var(--muted); font-size: 12px; margin-top: 3px; }
+  .result-meta .miss { color: #ff8a8a; }
+  .hc-chip { flex: none; font-size: 9.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold); border: 1px solid rgba(245,179,1,0.5); border-radius: 4px; padding: 2px 6px; }
   .pick { margin-top: 18px; }
   .pick-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .pick-btn { padding: 15px 10px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border-strong); color: var(--text); font-family: var(--font-display); font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; font-size: 15px; cursor: pointer; transition: border-color 0.15s, background 0.15s, transform 0.05s; }
@@ -192,6 +219,7 @@
     <div class="brand"><svg class="logo" aria-hidden="true"><use href="#qualia-mark"/></svg><span class="name">Qualia</span></div>
     <div class="nav-links">
       <button class="tab active" data-view="predictions">Predictions</button>
+      <button class="tab" data-view="results">Track Record</button>
       <button class="tab" data-view="leaderboard">Leaderboard</button>
       <span class="live"><span class="dot"></span>Live</span>
     </div>
@@ -205,6 +233,7 @@
       <svg class="logo-lg" aria-hidden="true"><use href="#qualia-mark"/></svg>
       <div>
         <h1 class="display hero-title">Qualia Bet Market</h1>
+        <p class="hero-tagline">The model sees what the odds miss.</p>
         <div class="hero-stats" id="hero-stats"><span>Loading…</span></div>
       </div>
     </section>
@@ -232,6 +261,17 @@
     </section>
 
     <section class="cards" id="cards"></section>
+  </div>
+
+  <!-- TRACK RECORD -->
+  <div id="view-results" hidden>
+    <section class="lb-head">
+      <span class="lb-eyebrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Model Track Record</span>
+      <h1 class="display lb-title">How The Model Has Done</h1>
+      <p class="lb-sub">Every scored fight — hits and misses. No cherry-picking; win rate alone means nothing without the full record.</p>
+    </section>
+    <div id="tr-body"></div>
+    <p class="foot">Scored against official results after each event</p>
   </div>
 
   <!-- LEADERBOARD -->
@@ -291,6 +331,15 @@
       </div>` : `
       <div class="metric"><div class="metric-label">Market</div><div class="noline">No betting line available yet.</div></div>`;
 
+    const predName = lastName(aPred ? f.fighter_a : f.fighter_b);
+    let edgeLine = "";
+    if (f.edge_type && f.edge_value != null) {
+      const pts = Math.round(Math.abs(f.edge_value) * 100);
+      edgeLine = f.edge_type === "model"
+        ? `<div class="edge-line model"><span>◆</span> Value pick — model gives ${predName} +${pts} pts over the market</div>`
+        : `<div class="edge-line market"><span>◆</span> Market backs ${predName} +${pts} pts over the model</div>`;
+    }
+
     el.innerHTML = `
       <div class="fight-meta">
         <span class="weightclass">${f.weight_class}</span>
@@ -310,6 +359,7 @@
         </div>
       </div>
       ${marketBlock}
+      ${edgeLine}
       <div class="pick">
         <div class="metric-label">Your Pick</div>
         <div class="pick-buttons" role="group" aria-label="Your pick for ${f.fighter_a} vs ${f.fighter_b}">
@@ -421,19 +471,62 @@
     }
   }
 
+  async function loadResults() {
+    const body = document.getElementById("tr-body");
+    body.innerHTML = `<div class="skeleton" style="height:120px"></div>`;
+    try {
+      const res = await fetch("/api/results");
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const data = await res.json();
+      const s = data.summary;
+      let html = `
+        <div class="tr-summary">
+          <div class="tr-stat"><div class="big tnum">${s.accuracy}%</div><div class="lbl">Overall Accuracy</div><div class="sub2">${s.correct} of ${s.scored} correct</div></div>
+          <div class="tr-stat hc"><div class="big tnum">${s.high_conf_accuracy}%</div><div class="lbl">High-Confidence</div><div class="sub2">${s.high_conf_correct} of ${s.high_conf_scored} correct</div></div>
+        </div>`;
+      if (!data.events.length) html += `<div class="state">No scored events yet.</div>`;
+      data.events.forEach((ev) => {
+        html += `<h2 class="display tr-event-title">${ev.event}</h2>`;
+        html += `<div class="tr-event-date">${new Date(ev.event_date + "T00:00:00").toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })}</div>`;
+        ev.fights.forEach((f) => {
+          const predWon = f.predicted_winner === f.actual_winner;
+          const other = f.actual_winner === f.fighter_a ? f.fighter_b : f.fighter_a;
+          html += `
+            <div class="result-row">
+              <span class="result-mark ${f.correct ? "ok" : "no"}">${f.correct ? "✓" : "✗"}</span>
+              <div class="result-body">
+                <div class="result-fight"><span class="win">${f.actual_winner}</span> def. <span class="lose">${other}</span></div>
+                <div class="result-meta">${f.weight_class} · ${f.method}${f.round ? " R" + f.round : ""}${f.correct ? "" : ` · <span class="miss">predicted ${f.predicted_winner}</span>`}</div>
+              </div>
+              ${f.high_conf ? '<span class="hc-chip">High Conf</span>' : ""}
+            </div>`;
+        });
+      });
+      body.innerHTML = html;
+    } catch (err) {
+      body.innerHTML = `<div class="state error">Couldn't load the track record — ${err.message}</div>`;
+    }
+  }
+
   // View switching
   const tabs = document.querySelectorAll(".tab");
-  const views = { predictions: document.getElementById("view-predictions"), leaderboard: document.getElementById("view-leaderboard") };
+  const views = {
+    predictions: document.getElementById("view-predictions"),
+    results: document.getElementById("view-results"),
+    leaderboard: document.getElementById("view-leaderboard"),
+  };
   const globalFoot = document.getElementById("global-foot");
-  let leaderboardLoaded = false;
+  let leaderboardLoaded = false, resultsLoaded = false;
   tabs.forEach((tab) => tab.addEventListener("click", () => {
     const v = tab.dataset.view;
     tabs.forEach((t) => t.classList.toggle("active", t === tab));
     views.predictions.hidden = v !== "predictions";
+    views.results.hidden = v !== "results";
     views.leaderboard.hidden = v !== "leaderboard";
     globalFoot.hidden = v !== "predictions";
     window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
     if (v === "leaderboard" && !leaderboardLoaded) { leaderboardLoaded = true; loadLeaderboard(); }
+    if (v === "results" && !resultsLoaded) { resultsLoaded = true; loadResults(); }
     if (v === "predictions") { document.querySelectorAll(".bar-fill").forEach((f) => (f.style.width = "0")); if (reduce) animateBars(); else requestAnimationFrame(() => requestAnimationFrame(animateBars)); }
   }));
 

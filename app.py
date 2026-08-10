@@ -4,6 +4,7 @@ Endpoints:
   GET  /                          -> the frontend (static/index.html)
   GET  /api/card                  -> fight card: model probs merged with live market odds
   GET  /api/leaderboard           -> community rankings
+  GET  /api/results               -> model track record (past scored fights)
   POST /api/scheduled/score-results -> record a scored event, award points
   POST /predict                   -> single head-to-head prediction from raw stats
 
@@ -24,6 +25,7 @@ from flask_cors import CORS
 
 from qualia import card as card_service
 from qualia import model as model_service
+from qualia import results as results_service
 from qualia import store
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
@@ -57,6 +59,11 @@ def api_card():
 def api_leaderboard():
     board = store.get_leaderboard()
     return jsonify({"leaderboard": board, "count": len(board)})
+
+
+@app.route("/api/results")
+def api_results():
+    return jsonify(results_service.get_track_record())
 
 
 @app.route("/api/scheduled/score-results", methods=["POST"])
