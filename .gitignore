@@ -6,6 +6,11 @@ venv/
 logs/
 data/results.json
 .env
-models/*.pkl
 data/fights_synth.csv
 data/odds_cache.json
+# Big, regenerable data-prep artifacts (rebuild via scripts/build_fighter_data.py)
+data/_raw/
+data/training.csv
+# The trained model IS committed (models/h2h_model.pkl); ignore other experiments
+models/*.pkl
+!models/h2h_model.pkl
