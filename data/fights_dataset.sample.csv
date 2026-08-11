@@ -1,0 +1,4 @@
+f1_avg_fight_duration,f2_avg_fight_duration,f1_knockdown_rate,f2_knockdown_rate,f1_takedown_success_rate,f2_takedown_success_rate,striking_accuracy_diff,f1_strike_defense,f2_strike_defense,takedown_defense_diff,f1_striking_balance,f2_striking_balance,clinch_control_diff,ground_control_diff,f1_finish_rate,f2_finish_rate,winner
+14.0,13.0,0.30,0.22,0.62,0.35,0.01,0.63,0.60,0.18,0.58,0.57,0.17,0.38,0.55,0.45,1
+12.0,12.5,0.34,0.42,0.45,0.30,-0.04,0.53,0.55,-0.18,0.56,0.60,0.12,0.40,0.82,0.70,0
+13.5,13.0,0.10,0.06,0.48,0.52,0.06,0.52,0.50,-0.03,0.50,0.44,0.03,0.10,0.60,0.42,1

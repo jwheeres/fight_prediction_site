@@ -1,5 +1,10 @@
 __pycache__/
 *.pyc
 .pytest_cache/
-.venv-trading/
+.venv*/
+venv/
 logs/
+data/results.json
+.env
+models/*.pkl
+data/fights_synth.csv

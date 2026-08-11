@@ -1,0 +1,25 @@
+{
+  "_note": "Real UFC Belgrade (Aug 1, 2026) results. predicted_winner = pre-fight betting favorite; used to seed the model track record.",
+  "events": [
+    {
+      "event": "UFC Fight Night: Medic vs. Rodriguez",
+      "event_date": "2026-08-01",
+      "fights": [
+        { "weight_class": "Welterweight", "fighter_a": "Uros Medic", "fighter_b": "Daniel Rodriguez", "predicted_winner": "Uros Medic", "actual_winner": "Uros Medic", "method": "KO/TKO", "round": 1, "high_conf": true, "correct": true },
+        { "weight_class": "Light Heavyweight", "fighter_a": "Jan Blachowicz", "fighter_b": "Navajo Stirling", "predicted_winner": "Navajo Stirling", "actual_winner": "Navajo Stirling", "method": "KO/TKO", "round": 1, "high_conf": true, "correct": true },
+        { "weight_class": "Heavyweight", "fighter_a": "Aleksandar Rakic", "fighter_b": "Marcin Tybura", "predicted_winner": "Aleksandar Rakic", "actual_winner": "Aleksandar Rakic", "method": "Decision", "round": 3, "high_conf": false, "correct": true },
+        { "weight_class": "Middleweight", "fighter_a": "Dusko Todorovic", "fighter_b": "Robert Valentin", "predicted_winner": "Robert Valentin", "actual_winner": "Robert Valentin", "method": "Submission", "round": 1, "high_conf": false, "correct": true },
+        { "weight_class": "Middleweight", "fighter_a": "Vlasto Cepo", "fighter_b": "Gilbert Urbina", "predicted_winner": "Vlasto Cepo", "actual_winner": "Gilbert Urbina", "method": "KO/TKO", "round": 1, "high_conf": true, "correct": false },
+        { "weight_class": "Lightweight", "fighter_a": "Milos Janicic", "fighter_b": "Noah Gugnon", "predicted_winner": "Milos Janicic", "actual_winner": "Noah Gugnon", "method": "Submission", "round": 1, "high_conf": false, "correct": false },
+        { "weight_class": "Lightweight", "fighter_a": "Ludovit Klein", "fighter_b": "Tofiq Musayev", "predicted_winner": "Ludovit Klein", "actual_winner": "Tofiq Musayev", "method": "KO/TKO", "round": 2, "high_conf": false, "correct": false },
+        { "weight_class": "Welterweight", "fighter_a": "Oban Elliott", "fighter_b": "Michael Oliveira", "predicted_winner": "Michael Oliveira", "actual_winner": "Michael Oliveira", "method": "KO/TKO", "round": 1, "high_conf": true, "correct": true },
+        { "weight_class": "Bantamweight", "fighter_a": "Borislav Nikolic", "fighter_b": "Mark Vologdin", "predicted_winner": "Borislav Nikolic", "actual_winner": "Borislav Nikolic", "method": "Decision", "round": 3, "high_conf": false, "correct": true },
+        { "weight_class": "Featherweight", "fighter_a": "Dennis Buzukja", "fighter_b": "Bogdan Grad", "predicted_winner": "Bogdan Grad", "actual_winner": "Bogdan Grad", "method": "Submission", "round": 2, "high_conf": false, "correct": true },
+        { "weight_class": "Lightweight", "fighter_a": "Mateusz Rebecki", "fighter_b": "Kyle Prepolec", "predicted_winner": "Mateusz Rebecki", "actual_winner": "Mateusz Rebecki", "method": "KO/TKO", "round": 1, "high_conf": true, "correct": true },
+        { "weight_class": "Women's Bantamweight", "fighter_a": "Nina Milosevic", "fighter_b": "Hailey Cowan", "predicted_winner": "Nina Milosevic", "actual_winner": "Nina Milosevic", "method": "KO/TKO", "round": 1, "high_conf": true, "correct": true },
+        { "weight_class": "Heavyweight", "fighter_a": "Jovan Leka", "fighter_b": "Alexander Poppeck", "predicted_winner": "Jovan Leka", "actual_winner": "Jovan Leka", "method": "KO/TKO", "round": 1, "high_conf": false, "correct": true },
+        { "weight_class": "Women's Strawweight", "fighter_a": "Marina Spasic", "fighter_b": "Stephanie Luciano", "predicted_winner": "Stephanie Luciano", "actual_winner": "Stephanie Luciano", "method": "Submission", "round": 1, "high_conf": true, "correct": true }
+      ]
+    }
+  ]
+}

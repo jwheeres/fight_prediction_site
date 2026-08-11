@@ -1,0 +1,17 @@
+# Render deployment config. Point Render at this repo and it picks this up.
+# The ODDS_API_KEY is marked sync:false so you set it in the dashboard as a
+# secret (it is never committed).
+services:
+  - type: web
+    name: qualia-bet-market
+    runtime: python
+    plan: free               # testing. NOTE: free spins down when idle (cold starts,
+                             # like Manus). Switch to 'starter' to stay warm in production.
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
+    healthCheckPath: /health
+    envVars:
+      - key: ODDS_API_KEY
+        sync: false
+      - key: PYTHON_VERSION
+        value: "3.11"

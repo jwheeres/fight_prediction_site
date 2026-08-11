@@ -1,0 +1,932 @@
+[
+  {
+    "id": "sample0",
+    "sport_key": "mma_mixed_martial_arts",
+    "commence_time": "2026-08-15T23:00:00Z",
+    "home_team": "Islam Makhachev",
+    "away_team": "Ian Machado Garry",
+    "bookmakers": [
+      {
+        "key": "draftkings",
+        "title": "DraftKings",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Islam Makhachev",
+                "price": -345
+              },
+              {
+                "name": "Ian Machado Garry",
+                "price": 255
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "fanduel",
+        "title": "FanDuel",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Islam Makhachev",
+                "price": -335
+              },
+              {
+                "name": "Ian Machado Garry",
+                "price": 285
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "betmgm",
+        "title": "BetMGM",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Islam Makhachev",
+                "price": -355
+              },
+              {
+                "name": "Ian Machado Garry",
+                "price": 250
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "williamhill_us",
+        "title": "Caesars",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Islam Makhachev",
+                "price": -315
+              },
+              {
+                "name": "Ian Machado Garry",
+                "price": 280
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sample1",
+    "sport_key": "mma_mixed_martial_arts",
+    "commence_time": "2026-08-15T23:00:00Z",
+    "home_team": "Mackenzie Dern",
+    "away_team": "Virna Jandiroba",
+    "bookmakers": [
+      {
+        "key": "draftkings",
+        "title": "DraftKings",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Mackenzie Dern",
+                "price": -140
+              },
+              {
+                "name": "Virna Jandiroba",
+                "price": 90
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "fanduel",
+        "title": "FanDuel",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Mackenzie Dern",
+                "price": -110
+              },
+              {
+                "name": "Virna Jandiroba",
+                "price": 80
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "betmgm",
+        "title": "BetMGM",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Mackenzie Dern",
+                "price": -110
+              },
+              {
+                "name": "Virna Jandiroba",
+                "price": 85
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "williamhill_us",
+        "title": "Caesars",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Mackenzie Dern",
+                "price": -140
+              },
+              {
+                "name": "Virna Jandiroba",
+                "price": 80
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sample2",
+    "sport_key": "mma_mixed_martial_arts",
+    "commence_time": "2026-08-15T23:00:00Z",
+    "home_team": "Charles Oliveira",
+    "away_team": "Justin Gaethje",
+    "bookmakers": [
+      {
+        "key": "draftkings",
+        "title": "DraftKings",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Charles Oliveira",
+                "price": 105
+              },
+              {
+                "name": "Justin Gaethje",
+                "price": -125
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "fanduel",
+        "title": "FanDuel",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Charles Oliveira",
+                "price": 85
+              },
+              {
+                "name": "Justin Gaethje",
+                "price": -140
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "betmgm",
+        "title": "BetMGM",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Charles Oliveira",
+                "price": 85
+              },
+              {
+                "name": "Justin Gaethje",
+                "price": -115
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "williamhill_us",
+        "title": "Caesars",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Charles Oliveira",
+                "price": 105
+              },
+              {
+                "name": "Justin Gaethje",
+                "price": -145
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sample3",
+    "sport_key": "mma_mixed_martial_arts",
+    "commence_time": "2026-08-15T23:00:00Z",
+    "home_team": "Dricus du Plessis",
+    "away_team": "Nassourdine Imavov",
+    "bookmakers": [
+      {
+        "key": "draftkings",
+        "title": "DraftKings",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Dricus du Plessis",
+                "price": -170
+              },
+              {
+                "name": "Nassourdine Imavov",
+                "price": 170
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "fanduel",
+        "title": "FanDuel",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Dricus du Plessis",
+                "price": -210
+              },
+              {
+                "name": "Nassourdine Imavov",
+                "price": 145
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "betmgm",
+        "title": "BetMGM",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Dricus du Plessis",
+                "price": -175
+              },
+              {
+                "name": "Nassourdine Imavov",
+                "price": 175
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "williamhill_us",
+        "title": "Caesars",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Dricus du Plessis",
+                "price": -180
+              },
+              {
+                "name": "Nassourdine Imavov",
+                "price": 140
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sample4",
+    "sport_key": "mma_mixed_martial_arts",
+    "commence_time": "2026-08-15T23:00:00Z",
+    "home_team": "Movsar Evloev",
+    "away_team": "Lerone Murphy",
+    "bookmakers": [
+      {
+        "key": "draftkings",
+        "title": "DraftKings",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Movsar Evloev",
+                "price": -150
+              },
+              {
+                "name": "Lerone Murphy",
+                "price": 145
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "fanduel",
+        "title": "FanDuel",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Movsar Evloev",
+                "price": -160
+              },
+              {
+                "name": "Lerone Murphy",
+                "price": 115
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "betmgm",
+        "title": "BetMGM",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Movsar Evloev",
+                "price": -175
+              },
+              {
+                "name": "Lerone Murphy",
+                "price": 115
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "williamhill_us",
+        "title": "Caesars",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Movsar Evloev",
+                "price": -150
+              },
+              {
+                "name": "Lerone Murphy",
+                "price": 155
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sample5",
+    "sport_key": "mma_mixed_martial_arts",
+    "commence_time": "2026-08-15T23:00:00Z",
+    "home_team": "Umar Nurmagomedov",
+    "away_team": "Cory Sandhagen",
+    "bookmakers": [
+      {
+        "key": "draftkings",
+        "title": "DraftKings",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Umar Nurmagomedov",
+                "price": -255
+              },
+              {
+                "name": "Cory Sandhagen",
+                "price": 185
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "fanduel",
+        "title": "FanDuel",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Umar Nurmagomedov",
+                "price": -240
+              },
+              {
+                "name": "Cory Sandhagen",
+                "price": 180
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "betmgm",
+        "title": "BetMGM",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Umar Nurmagomedov",
+                "price": -230
+              },
+              {
+                "name": "Cory Sandhagen",
+                "price": 175
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "williamhill_us",
+        "title": "Caesars",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Umar Nurmagomedov",
+                "price": -230
+              },
+              {
+                "name": "Cory Sandhagen",
+                "price": 185
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sample6",
+    "sport_key": "mma_mixed_martial_arts",
+    "commence_time": "2026-08-15T23:00:00Z",
+    "home_team": "Ciryl Gane",
+    "away_team": "Sergei Pavlovich",
+    "bookmakers": [
+      {
+        "key": "draftkings",
+        "title": "DraftKings",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Ciryl Gane",
+                "price": -160
+              },
+              {
+                "name": "Sergei Pavlovich",
+                "price": 165
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "fanduel",
+        "title": "FanDuel",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Ciryl Gane",
+                "price": -155
+              },
+              {
+                "name": "Sergei Pavlovich",
+                "price": 130
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "betmgm",
+        "title": "BetMGM",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Ciryl Gane",
+                "price": -190
+              },
+              {
+                "name": "Sergei Pavlovich",
+                "price": 155
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "williamhill_us",
+        "title": "Caesars",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Ciryl Gane",
+                "price": -160
+              },
+              {
+                "name": "Sergei Pavlovich",
+                "price": 160
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sample7",
+    "sport_key": "mma_mixed_martial_arts",
+    "commence_time": "2026-08-15T23:00:00Z",
+    "home_team": "Brandon Royval",
+    "away_team": "Amir Albazi",
+    "bookmakers": [
+      {
+        "key": "draftkings",
+        "title": "DraftKings",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Brandon Royval",
+                "price": -125
+              },
+              {
+                "name": "Amir Albazi",
+                "price": -120
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "fanduel",
+        "title": "FanDuel",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Brandon Royval",
+                "price": -130
+              },
+              {
+                "name": "Amir Albazi",
+                "price": -100
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "betmgm",
+        "title": "BetMGM",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Brandon Royval",
+                "price": -95
+              },
+              {
+                "name": "Amir Albazi",
+                "price": -130
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "williamhill_us",
+        "title": "Caesars",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Brandon Royval",
+                "price": -100
+              },
+              {
+                "name": "Amir Albazi",
+                "price": -130
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sample8",
+    "sport_key": "mma_mixed_martial_arts",
+    "commence_time": "2026-08-15T23:00:00Z",
+    "home_team": "Shavkat Rakhmonov",
+    "away_team": "Michael Morales",
+    "bookmakers": [
+      {
+        "key": "draftkings",
+        "title": "DraftKings",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Shavkat Rakhmonov",
+                "price": -270
+              },
+              {
+                "name": "Michael Morales",
+                "price": 215
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "fanduel",
+        "title": "FanDuel",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Shavkat Rakhmonov",
+                "price": -280
+              },
+              {
+                "name": "Michael Morales",
+                "price": 245
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "betmgm",
+        "title": "BetMGM",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Shavkat Rakhmonov",
+                "price": -270
+              },
+              {
+                "name": "Michael Morales",
+                "price": 230
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "williamhill_us",
+        "title": "Caesars",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Shavkat Rakhmonov",
+                "price": -260
+              },
+              {
+                "name": "Michael Morales",
+                "price": 220
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sample9",
+    "sport_key": "mma_mixed_martial_arts",
+    "commence_time": "2026-08-15T23:00:00Z",
+    "home_team": "Kayla Harrison",
+    "away_team": "Raquel Pennington",
+    "bookmakers": [
+      {
+        "key": "draftkings",
+        "title": "DraftKings",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Kayla Harrison",
+                "price": -150
+              },
+              {
+                "name": "Raquel Pennington",
+                "price": 135
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "fanduel",
+        "title": "FanDuel",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Kayla Harrison",
+                "price": -150
+              },
+              {
+                "name": "Raquel Pennington",
+                "price": 115
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "betmgm",
+        "title": "BetMGM",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Kayla Harrison",
+                "price": -160
+              },
+              {
+                "name": "Raquel Pennington",
+                "price": 110
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "williamhill_us",
+        "title": "Caesars",
+        "last_update": "2026-08-14T18:00:00Z",
+        "markets": [
+          {
+            "key": "h2h",
+            "last_update": "2026-08-14T18:00:00Z",
+            "outcomes": [
+              {
+                "name": "Kayla Harrison",
+                "price": -130
+              },
+              {
+                "name": "Raquel Pennington",
+                "price": 110
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
