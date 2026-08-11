@@ -16,9 +16,14 @@ winner. This is the payload the frontend renders.
 from __future__ import annotations
 
 import json
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from qualia import model, odds
+
+# One UFC card's fights all start within a few hours; this window keeps a single
+# event together (even when it spans UTC midnight) while excluding the next one.
+_NEXT_CARD_WINDOW = timedelta(hours=12)
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 CARD_FILE = DATA_DIR / "card.json"
@@ -133,6 +138,27 @@ def _score_fight(name_a: str, name_b: str, lookup,
     }
 
 
+def _parse_dt(ts: str | None):
+    if not ts:
+        return None
+    try:
+        return datetime.fromisoformat(ts.replace("Z", "+00:00"))
+    except Exception:
+        return None
+
+
+def _next_card_only(events: list[dict]) -> list[dict]:
+    """Keep just the soonest event — fights starting within one card's window
+    of the earliest one — so the board shows the next card, not the whole
+    calendar. Events without a parseable time are left in as a safe fallback."""
+    times = [t for t in (_parse_dt(e.get("commence_time")) for e in events) if t]
+    if not times:
+        return events
+    cutoff = min(times) + _NEXT_CARD_WINDOW
+    kept = [e for e in events if (_parse_dt(e.get("commence_time")) or cutoff) <= cutoff]
+    return kept or events
+
+
 def _build_from_feed(odds_data: dict) -> dict:
     """Card built from the live odds feed — the real upcoming matchups.
 
@@ -145,7 +171,8 @@ def _build_from_feed(odds_data: dict) -> dict:
     lookup = _build_matcher()
     ordered = sorted(odds_data["events"], key=lambda e: e.get("commence_time") or "")
     ufc = [e for e in ordered if lookup(e["fighter_a"]) or lookup(e["fighter_b"])]
-    events = (ufc if ufc else ordered)[:_MAX_LIVE_FIGHTS]
+    events = ufc if ufc else ordered
+    events = _next_card_only(events)[:_MAX_LIVE_FIGHTS]
 
     fights_out = []
     high_conf = 0
