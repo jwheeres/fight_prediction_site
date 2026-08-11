@@ -134,6 +134,7 @@ def get_odds(force_refresh: bool = False) -> dict:
     api_key = os.getenv("ODDS_API_KEY", "").strip()
     source = "sample"
     raw_events: list[dict] = []
+    diag: dict = {"key_present": bool(api_key), "key_length": len(api_key)}
 
     if api_key:
         try:
@@ -142,21 +143,42 @@ def get_odds(force_refresh: bool = False) -> dict:
                 params={"apiKey": api_key, "regions": "us", "markets": "h2h", "oddsFormat": "american"},
                 timeout=12,
             )
+            diag["http_status"] = resp.status_code
+            diag["requests_remaining"] = resp.headers.get("x-requests-remaining")
+            diag["requests_used"] = resp.headers.get("x-requests-used")
+            if not resp.ok:
+                # Surface the API's own message (e.g. invalid key, quota) so it
+                # can be diagnosed without leaking the key itself.
+                diag["error"] = resp.text[:200]
             resp.raise_for_status()
             raw_events = resp.json()
+            diag["raw_events"] = len(raw_events)
             source = "live"
-        except Exception:
+        except Exception as exc:
             # Any failure (network, quota, bad key) falls back to sample data
             # rather than crashing the page. The 'source' stays 'sample' so the
             # UI can flag that odds are not live.
+            diag.setdefault("error", str(exc)[:200])
             raw_events = _load_sample()
             source = "sample"
     else:
         raw_events = _load_sample()
 
     events = _parse_events(raw_events)
-    _CACHE.update({"fetched_at": now, "events": events, "source": source})
+    diag["source"] = source
+    diag["parsed_events"] = len(events)
+    _CACHE.update({"fetched_at": now, "events": events, "source": source, "diag": diag})
     return {"source": source, "fetched_at": now, "events": events}
+
+
+def get_diagnostics() -> dict:
+    """Non-secret snapshot of the last odds fetch, for troubleshooting.
+
+    Forces a fresh fetch so the result reflects the current key/config, and
+    never returns the key value (only whether one is present and its length).
+    """
+    get_odds(force_refresh=True)
+    return _CACHE.get("diag", {"key_present": bool(os.getenv("ODDS_API_KEY", "").strip())})
 
 
 def build_odds_index(force_refresh: bool = False) -> dict:
