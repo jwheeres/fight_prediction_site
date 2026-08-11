@@ -382,16 +382,10 @@
         : `<div class="edge-line market"><span>◆</span> Market backs ${predName} +${pts} pts over the model</div>`;
     }
 
-    el.innerHTML = `
-      <div class="fight-meta">
-        <span class="weightclass">${f.weight_class}</span>
-        <span class="badges">${edgeBadge}<span class="badge conf ${f.confidence}">${confLabel[f.confidence]}</span></span>
-      </div>
-      <div class="fighters">
-        <div class="fighter a"><div class="fighter-name">${f.fighter_a}</div>${aPred ? '<div class="predicted">Predicted</div>' : ""}</div>
-        <div class="vs">vs</div>
-        <div class="fighter b"><div class="fighter-name">${f.fighter_b}</div>${!aPred ? '<div class="predicted">Predicted</div>' : ""}</div>
-      </div>
+    const metaLeft = f.weight_class
+      || (f.commence_time ? new Date(f.commence_time).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }) : "MMA");
+    const confBadge = f.confidence ? `<span class="badge conf ${f.confidence}">${confLabel[f.confidence]}</span>` : "";
+    const modelBlock = (f.model_prob_a != null) ? `
       <div class="metric">
         <div class="metric-label">Model</div>
         <div class="bar-track"><div class="bar-fill model" data-w="${f.model_prob_a}"></div><div class="bar-mark"></div></div>
@@ -399,7 +393,20 @@
           <span class="v ${f.model_prob_a >= f.model_prob_b ? "lead" : "trail"}">${f.model_prob_a}%</span>
           <span class="v ${f.model_prob_b > f.model_prob_a ? "lead" : "trail"}">${f.model_prob_b}%</span>
         </div>
+      </div>` : `
+      <div class="metric"><div class="metric-label">Model</div><div class="noline">Not enough fighter data yet — showing market only.</div></div>`;
+
+    el.innerHTML = `
+      <div class="fight-meta">
+        <span class="weightclass">${metaLeft}</span>
+        <span class="badges">${edgeBadge}${confBadge}</span>
       </div>
+      <div class="fighters">
+        <div class="fighter a"><div class="fighter-name">${f.fighter_a}</div>${aPred ? '<div class="predicted">Predicted</div>' : ""}</div>
+        <div class="vs">vs</div>
+        <div class="fighter b"><div class="fighter-name">${f.fighter_b}</div>${!aPred ? '<div class="predicted">Predicted</div>' : ""}</div>
+      </div>
+      ${modelBlock}
       ${marketBlock}
       ${edgeLine}
       <div class="pick">
@@ -441,10 +448,12 @@
   }
 
   function renderCard(data) {
+    const noun = data.live_feed ? "Fights" : "Predictions";
+    const hc = data.summary.high_confidence;
     document.getElementById("hero-stats").innerHTML =
-      `<span><b>${data.summary.predictions}</b> Predictions</span><span>·</span>` +
-      `<span><b>${data.summary.events}</b> Event</span><span>·</span>` +
-      `<span><b>${data.summary.high_confidence}</b> High Confidence</span>`;
+      `<span><b>${data.summary.predictions}</b> ${noun}</span><span>·</span>` +
+      `<span><b>${data.summary.events}</b> ${data.summary.events === 1 ? "Event" : "Events"}</span><span>·</span>` +
+      `<span><b>${hc}</b> High Confidence</span>`;
 
     const fresh = document.getElementById("freshbar");
     fresh.hidden = false;
@@ -457,11 +466,14 @@
     const head = document.getElementById("event-head");
     head.hidden = false;
     document.getElementById("ppv-tag").hidden = !data.is_ppv;
-    document.getElementById("event-date").textContent = new Date(data.event_date + "T00:00:00").toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+    document.getElementById("event-date").textContent = data.event_date
+      ? new Date(data.event_date + "T00:00:00").toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })
+      : "";
     document.getElementById("event-title").textContent = data.event;
-    document.getElementById("event-sub").innerHTML = `${data.fights.length} fights · <b>${data.summary.high_confidence} high-confidence picks</b>`;
-    const evPill = data.event.split(":")[0].trim();
-    document.getElementById("event-pill").textContent = evPill;
+    document.getElementById("event-sub").innerHTML = hc > 0
+      ? `${data.fights.length} fights · <b>${hc} high-confidence picks</b>`
+      : `${data.fights.length} fights · <b>live market odds</b>`;
+    document.getElementById("event-pill").textContent = data.live_feed ? "MMA" : data.event.split(":")[0].trim();
 
     cards.innerHTML = "";
     data.fights.forEach((f) => cards.appendChild(fightCard(f)));
