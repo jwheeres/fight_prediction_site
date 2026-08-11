@@ -25,6 +25,7 @@ from flask_cors import CORS
 
 from qualia import card as card_service
 from qualia import model as model_service
+from qualia import odds as odds_service
 from qualia import results as results_service
 from qualia import store
 
@@ -64,6 +65,12 @@ def api_leaderboard():
 @app.route("/api/results")
 def api_results():
     return jsonify(results_service.get_track_record())
+
+
+@app.route("/api/odds-status")
+def api_odds_status():
+    """Diagnostics for the live odds hookup (no secrets returned)."""
+    return jsonify(odds_service.get_diagnostics())
 
 
 @app.route("/api/scheduled/score-results", methods=["POST"])
