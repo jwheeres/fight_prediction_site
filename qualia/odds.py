@@ -21,13 +21,20 @@ import requests
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 SAMPLE_ODDS_FILE = DATA_DIR / "sample_odds.json"
+# Last successful LIVE fetch, persisted so we keep showing real odds (not
+# made-up sample data) across restarts and when credits run out.
+ODDS_CACHE_FILE = DATA_DIR / "odds_cache.json"
 
 ODDS_API_BASE = "https://api.the-odds-api.com/v4"
 SPORT_KEY = "mma_mixed_martial_arts"
 
-# Simple in-process cache so we don't burn the API quota (free tier ~500/mo).
-_CACHE: dict[str, object] = {"fetched_at": 0.0, "events": None, "source": None}
+# Simple in-process cache so we don't burn the API quota (free tier 500/mo).
+_CACHE: dict[str, object] = {"fetched_at": 0.0, "events": None, "source": None,
+                             "diag": None, "cooldown_until": 0.0}
 _CACHE_TTL_SECONDS = 15 * 60
+# After hitting zero credits, stop calling for a while so we don't hammer the
+# API with doomed requests. force_refresh (the UI's Refresh button) bypasses it.
+_OUT_OF_CREDITS_COOLDOWN = 30 * 60
 
 
 def normalize_name(name: str) -> str:
@@ -118,10 +125,30 @@ def _load_sample() -> list[dict]:
     return json.loads(SAMPLE_ODDS_FILE.read_text())
 
 
+def _save_disk_cache(raw_events: list[dict], fetched_at: float) -> None:
+    try:
+        ODDS_CACHE_FILE.write_text(json.dumps({"raw_events": raw_events, "fetched_at": fetched_at}))
+    except Exception:
+        pass  # best-effort; a read-only FS just means no cross-restart cache
+
+
+def _load_disk_cache() -> tuple[list[dict] | None, float]:
+    try:
+        d = json.loads(ODDS_CACHE_FILE.read_text())
+        return d.get("raw_events"), float(d.get("fetched_at", 0.0))
+    except Exception:
+        return None, 0.0
+
+
 def get_odds(force_refresh: bool = False) -> dict:
     """Return {'source', 'fetched_at', 'events': [...]} with consensus odds.
 
-    source is 'live' when the API answered, 'sample' when we fell back.
+    Credit-aware fallback ladder:
+      1. fresh in-process cache
+      2. a live API call (skipped while in a post-zero-credits cooldown)
+      3. the last successful LIVE fetch persisted to disk (real odds, just
+         older) — served as 'live' with an honest timestamp
+      4. bundled sample data (only if we've never had a successful fetch)
     """
     now = time.time()
     if (
@@ -132,11 +159,10 @@ def get_odds(force_refresh: bool = False) -> dict:
         return {"source": _CACHE["source"], "fetched_at": _CACHE["fetched_at"], "events": _CACHE["events"]}
 
     api_key = os.getenv("ODDS_API_KEY", "").strip()
-    source = "sample"
-    raw_events: list[dict] = []
     diag: dict = {"key_present": bool(api_key), "key_length": len(api_key)}
+    in_cooldown = (not force_refresh) and now < float(_CACHE.get("cooldown_until", 0.0))
 
-    if api_key:
+    if api_key and not in_cooldown:
         try:
             resp = requests.get(
                 f"{ODDS_API_BASE}/sports/{SPORT_KEY}/odds",
@@ -147,38 +173,52 @@ def get_odds(force_refresh: bool = False) -> dict:
             diag["requests_remaining"] = resp.headers.get("x-requests-remaining")
             diag["requests_used"] = resp.headers.get("x-requests-used")
             if not resp.ok:
-                # Surface the API's own message (e.g. invalid key, quota) so it
-                # can be diagnosed without leaking the key itself.
                 diag["error"] = resp.text[:200]
+                # Out of credits (or bad key): back off so we stop hammering.
+                if resp.headers.get("x-requests-remaining") == "0" or resp.status_code in (401, 429):
+                    _CACHE["cooldown_until"] = now + _OUT_OF_CREDITS_COOLDOWN
             resp.raise_for_status()
             raw_events = resp.json()
             diag["raw_events"] = len(raw_events)
-            source = "live"
+            events = _parse_events(raw_events)
+            diag["source"] = "live"
+            diag["parsed_events"] = len(events)
+            _save_disk_cache(raw_events, now)
+            _CACHE.update({"fetched_at": now, "events": events, "source": "live",
+                           "diag": diag, "cooldown_until": 0.0})
+            return {"source": "live", "fetched_at": now, "events": events}
         except Exception as exc:
-            # Any failure (network, quota, bad key) falls back to sample data
-            # rather than crashing the page. The 'source' stays 'sample' so the
-            # UI can flag that odds are not live.
             diag.setdefault("error", str(exc)[:200])
-            raw_events = _load_sample()
-            source = "sample"
-    else:
-        raw_events = _load_sample()
+    elif in_cooldown:
+        diag["note"] = "credit cooldown active; serving cached odds"
 
-    events = _parse_events(raw_events)
-    diag["source"] = source
+    # Live call failed / skipped -> last real odds from disk, if we have them.
+    disk_raw, disk_at = _load_disk_cache()
+    if disk_raw:
+        events = _parse_events(disk_raw)
+        diag["source"] = "cached"
+        diag["parsed_events"] = len(events)
+        _CACHE.update({"fetched_at": disk_at or now, "events": events, "source": "live", "diag": diag})
+        return {"source": "live", "fetched_at": disk_at or now, "events": events}
+
+    # Never had a successful fetch -> honest sample data.
+    events = _parse_events(_load_sample())
+    diag["source"] = "sample"
     diag["parsed_events"] = len(events)
-    _CACHE.update({"fetched_at": now, "events": events, "source": source, "diag": diag})
-    return {"source": source, "fetched_at": now, "events": events}
+    _CACHE.update({"fetched_at": now, "events": events, "source": "sample", "diag": diag})
+    return {"source": "sample", "fetched_at": now, "events": events}
 
 
 def get_diagnostics() -> dict:
     """Non-secret snapshot of the last odds fetch, for troubleshooting.
 
-    Forces a fresh fetch so the result reflects the current key/config, and
-    never returns the key value (only whether one is present and its length).
+    Reuses the cached result so checking status never costs an API credit; only
+    triggers a fetch if nothing has been fetched yet this process. Never returns
+    the key value (only whether one is present and its length).
     """
-    get_odds(force_refresh=True)
-    return _CACHE.get("diag", {"key_present": bool(os.getenv("ODDS_API_KEY", "").strip())})
+    if _CACHE.get("diag") is None:
+        get_odds()
+    return _CACHE.get("diag") or {"key_present": bool(os.getenv("ODDS_API_KEY", "").strip())}
 
 
 def build_odds_index(force_refresh: bool = False) -> dict:

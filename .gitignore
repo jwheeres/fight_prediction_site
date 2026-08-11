@@ -8,3 +8,4 @@ data/results.json
 .env
 models/*.pkl
 data/fights_synth.csv
+data/odds_cache.json
