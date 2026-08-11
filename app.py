@@ -129,7 +129,7 @@ def predict():
 
 @app.route("/health")
 def health():
-    return jsonify({"status": "ok", "features": len(model_service.FEATURE_SCHEMA)})
+    return jsonify({"status": "ok", "model": model_service.MODEL_KIND, "features": len(model_service.FEATURES)})
 
 
 if __name__ == "__main__":

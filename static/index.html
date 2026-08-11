@@ -286,7 +286,7 @@
     <div class="freshbar" id="freshbar" hidden>
       <span class="fresh-item">Odds <span class="chip" id="odds-chip"></span></span>
       <span class="fresh-item" id="odds-updated"></span>
-      <span class="fresh-item">Model <span class="chip baseline">Baseline</span></span>
+      <span class="fresh-item">Model <span class="chip baseline" id="model-chip">Baseline</span></span>
       <button class="refresh-btn" id="refresh-btn">↻ Refresh</button>
     </div>
 
@@ -465,6 +465,14 @@
     else { chip.className = "chip sample"; chip.textContent = "Sample"; }
     document.getElementById("odds-updated").textContent =
       data.odds_source === "live" ? "Updated " + relTime(data.odds_fetched_at) : "Set ODDS_API_KEY for live odds";
+
+    const mc = document.getElementById("model-chip");
+    if (!data.model_kind || data.model_kind === "baseline") {
+      mc.className = "chip baseline"; mc.textContent = "Baseline";
+    } else {
+      mc.className = "chip live";
+      mc.textContent = data.model_accuracy ? `Trained · ${Math.round(data.model_accuracy * 100)}%` : "Trained";
+    }
 
     const head = document.getElementById("event-head");
     head.hidden = false;

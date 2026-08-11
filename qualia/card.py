@@ -22,7 +22,10 @@ from qualia import model, odds
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 CARD_FILE = DATA_DIR / "card.json"
-FIGHTERS_FILE = DATA_DIR / "fighters.json"
+# Real career stats for ~2,700 fighters (scripts/build_fighter_data.py); falls
+# back to the small hand-seeded table if the real one isn't present.
+FIGHTERS_FILE = DATA_DIR / "fighters_stats.json"
+_FALLBACK_FIGHTERS_FILE = DATA_DIR / "fighters.json"
 
 _EDGE_THRESHOLD = 0.08     # model vs market gap (8 pts) before we flag an edge
 _HIGH_CONF_MODEL = 0.65    # model strongly favors one side
@@ -36,7 +39,8 @@ def _load(path: Path) -> dict | list:
 
 def _fighter_stats() -> dict:
     """Normalized-name -> stats, so odds-feed names match our stat table."""
-    raw = _load(FIGHTERS_FILE)
+    path = FIGHTERS_FILE if FIGHTERS_FILE.exists() else _FALLBACK_FIGHTERS_FILE
+    raw = _load(path)
     return {odds.normalize_name(k): v for k, v in raw.items() if not k.startswith("_")}
 
 
@@ -137,6 +141,7 @@ def _build_from_feed(odds_data: dict) -> dict:
         "odds_source": odds_data["source"],
         "odds_fetched_at": odds_data["fetched_at"],
         "model_kind": model.MODEL_KIND,
+        "model_accuracy": model.MODEL_METRICS.get("accuracy"),
         "summary": {
             "predictions": len(fights_out),
             "events": len({(f.get("commence_time") or "")[:10] for f in fights_out}),
@@ -195,6 +200,7 @@ def _build_static(force_refresh: bool) -> dict:
         "odds_source": odds_data["source"],
         "odds_fetched_at": odds_data["fetched_at"],
         "model_kind": model.MODEL_KIND,
+        "model_accuracy": model.MODEL_METRICS.get("accuracy"),
         "summary": {"predictions": len(fights_out), "events": 1, "high_confidence": high_conf},
         "fights": fights_out,
     }
