@@ -87,6 +87,9 @@
   .event-sub b { color: var(--gold); font-weight: 700; }
 
   .cards { display: flex; flex-direction: column; gap: 16px; }
+  .day-header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 12px 2px -2px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+  .day-header > span:first-child { font-family: var(--font-display); font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; font-size: 19px; color: var(--ivory); }
+  .day-header .day-count { text-transform: uppercase; letter-spacing: 0.12em; font-size: 11px; font-weight: 800; color: var(--muted); white-space: nowrap; }
   .fight { border: 1px solid var(--border); background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.008)), var(--bg-2); border-radius: 16px; padding: 20px 20px 22px; }
   .fight.main { border-color: rgba(225,29,42,0.42); box-shadow: 0 0 0 1px rgba(225,29,42,0.10), 0 18px 40px -30px rgba(225,29,42,0.6); }
   .fight-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
@@ -383,7 +386,7 @@
     }
 
     const metaLeft = f.weight_class
-      || (f.commence_time ? new Date(f.commence_time).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }) : "MMA");
+      || (f.commence_time ? new Date(f.commence_time).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }) : "MMA");
     const confBadge = f.confidence ? `<span class="badge conf ${f.confidence}">${confLabel[f.confidence]}</span>` : "";
     const modelBlock = (f.model_prob_a != null) ? `
       <div class="metric">
@@ -466,17 +469,53 @@
     const head = document.getElementById("event-head");
     head.hidden = false;
     document.getElementById("ppv-tag").hidden = !data.is_ppv;
-    document.getElementById("event-date").textContent = data.event_date
-      ? new Date(data.event_date + "T00:00:00").toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })
-      : "";
+
+    // Group live-feed fights by night (each MMA card is one date).
+    const groups = [];
+    if (data.live_feed) {
+      const byDay = new Map();
+      data.fights.forEach((f) => {
+        const key = f.commence_time ? new Date(f.commence_time).toDateString() : "TBD";
+        if (!byDay.has(key)) byDay.set(key, []);
+        byDay.get(key).push(f);
+      });
+      for (const [key, fights] of byDay) groups.push({ key, fights });
+    }
+
+    // Header date: a range across the live board, or the single card's date.
+    const fmtShort = (d) => d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    if (data.live_feed && groups.length) {
+      const first = new Date(groups[0].fights[0].commence_time);
+      const last = new Date(groups[groups.length - 1].fights.slice(-1)[0].commence_time);
+      document.getElementById("event-date").textContent =
+        groups.length === 1 ? fmtShort(first) : `${fmtShort(first)} – ${fmtShort(last)}`;
+    } else {
+      document.getElementById("event-date").textContent = data.event_date
+        ? new Date(data.event_date + "T00:00:00").toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })
+        : "";
+    }
+
     document.getElementById("event-title").textContent = data.event;
+    const eventWord = data.live_feed ? (groups.length === 1 ? "1 card" : `${groups.length} cards`) : "";
     document.getElementById("event-sub").innerHTML = hc > 0
       ? `${data.fights.length} fights · <b>${hc} high-confidence picks</b>`
-      : `${data.fights.length} fights · <b>live market odds</b>`;
+      : (data.live_feed ? `${data.fights.length} fights · <b>${eventWord} · live odds</b>` : `${data.fights.length} fights · <b>live market odds</b>`);
     document.getElementById("event-pill").textContent = data.live_feed ? "MMA" : data.event.split(":")[0].trim();
 
     cards.innerHTML = "";
-    data.fights.forEach((f) => cards.appendChild(fightCard(f)));
+    if (data.live_feed && groups.length) {
+      groups.forEach(({ key, fights }) => {
+        const hdr = document.createElement("div");
+        hdr.className = "day-header";
+        const label = key === "TBD" ? "Date TBD"
+          : new Date(key).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+        hdr.innerHTML = `<span>${label}</span><span class="day-count">${fights.length} fight${fights.length === 1 ? "" : "s"}</span>`;
+        cards.appendChild(hdr);
+        fights.forEach((f) => cards.appendChild(fightCard(f)));
+      });
+    } else {
+      data.fights.forEach((f) => cards.appendChild(fightCard(f)));
+    }
     if (reduce) animateBars(); else requestAnimationFrame(() => requestAnimationFrame(animateBars));
   }
 
