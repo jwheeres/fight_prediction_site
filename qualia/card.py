@@ -134,11 +134,18 @@ def _score_fight(name_a: str, name_b: str, lookup,
 
 
 def _build_from_feed(odds_data: dict) -> dict:
-    """Card built from the live odds feed — the real upcoming matchups."""
+    """Card built from the live odds feed — the real upcoming matchups.
+
+    The odds feed is all MMA; we filter to UFC by keeping fights where at least
+    one fighter has UFC history (is in our ufcstats-derived DB). That drops
+    regional / Contender-Series prospect cards while keeping real UFC bouts.
+    If nothing matches (e.g. a genuine off-week), we show the unfiltered board
+    rather than a blank page.
+    """
     lookup = _build_matcher()
-    events = sorted(
-        odds_data["events"], key=lambda e: e.get("commence_time") or ""
-    )[:_MAX_LIVE_FIGHTS]
+    ordered = sorted(odds_data["events"], key=lambda e: e.get("commence_time") or "")
+    ufc = [e for e in ordered if lookup(e["fighter_a"]) or lookup(e["fighter_b"])]
+    events = (ufc if ufc else ordered)[:_MAX_LIVE_FIGHTS]
 
     fights_out = []
     high_conf = 0
@@ -165,7 +172,7 @@ def _build_from_feed(odds_data: dict) -> dict:
     first_dt = events[0].get("commence_time") if events else None
     event_date = (first_dt or "")[:10] or None
     return {
-        "event": "Upcoming Fights",
+        "event": "Upcoming UFC",
         "event_date": event_date,
         "is_ppv": False,
         "live_feed": True,
