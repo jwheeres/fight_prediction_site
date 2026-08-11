@@ -37,11 +37,42 @@ def _load(path: Path) -> dict | list:
     return json.loads(path.read_text())
 
 
-def _fighter_stats() -> dict:
-    """Normalized-name -> stats, so odds-feed names match our stat table."""
+def _build_matcher():
+    """Return lookup(name) -> stats|None, tolerant of naming differences.
+
+    The odds feed and ufcstats don't always spell names the same way — the
+    most common gap is middle names ("Ian Garry" vs "Ian Machado Garry"). We
+    index each fighter by their full normalized name AND by first+last, and
+    match a queried name against either, so those line up.
+    """
     path = FIGHTERS_FILE if FIGHTERS_FILE.exists() else _FALLBACK_FIGHTERS_FILE
     raw = _load(path)
-    return {odds.normalize_name(k): v for k, v in raw.items() if not k.startswith("_")}
+
+    by_full: dict[str, dict] = {}
+    fl_counts: dict[str, int] = {}
+    by_fl: dict[str, dict] = {}
+    for name, stats in raw.items():
+        if name.startswith("_"):
+            continue
+        nf = odds.normalize_name(name)
+        by_full[nf] = stats
+        parts = nf.split()
+        if len(parts) >= 2:
+            fl = f"{parts[0]} {parts[-1]}"
+            fl_counts[fl] = fl_counts.get(fl, 0) + 1
+            by_fl[fl] = stats
+    # Only trust first+last keys that are unambiguous.
+    by_fl = {k: v for k, v in by_fl.items() if fl_counts[k] == 1}
+
+    def lookup(name: str):
+        nf = odds.normalize_name(name)
+        if nf in by_full:
+            return by_full[nf]
+        parts = nf.split()
+        fl = f"{parts[0]} {parts[-1]}" if len(parts) >= 2 else nf
+        return by_fl.get(nf) or by_full.get(fl) or by_fl.get(fl)
+
+    return lookup
 
 
 def _confidence(model_prob_winner: float) -> str:
@@ -52,15 +83,15 @@ def _confidence(model_prob_winner: float) -> str:
     return "lean"
 
 
-def _score_fight(name_a: str, name_b: str, stats: dict,
+def _score_fight(name_a: str, name_b: str, lookup,
                  market_a, market_b) -> dict:
     """Model + edge + confidence for one fight. market_* are 0-1 or None.
 
     Returns the per-fight fields shared by both build modes. When we have no
     stats for a fighter, the model side is None (market-only card).
     """
-    sa = stats.get(odds.normalize_name(name_a))
-    sb = stats.get(odds.normalize_name(name_b))
+    sa = lookup(name_a)
+    sb = lookup(name_b)
 
     if sa and sb:
         model_a = model.win_probability(sa, sb)
@@ -104,7 +135,7 @@ def _score_fight(name_a: str, name_b: str, stats: dict,
 
 def _build_from_feed(odds_data: dict) -> dict:
     """Card built from the live odds feed — the real upcoming matchups."""
-    stats = _fighter_stats()
+    lookup = _build_matcher()
     events = sorted(
         odds_data["events"], key=lambda e: e.get("commence_time") or ""
     )[:_MAX_LIVE_FIGHTS]
@@ -114,7 +145,7 @@ def _build_from_feed(odds_data: dict) -> dict:
     for ev in events:
         a, b = ev["fighter_a"], ev["fighter_b"]
         market_a, market_b = ev["market_prob_a"], ev["market_prob_b"]
-        scored = _score_fight(a, b, stats, market_a, market_b)
+        scored = _score_fight(a, b, lookup, market_a, market_b)
         if scored["confidence"] == "high":
             high_conf += 1
         fights_out.append({
@@ -154,7 +185,7 @@ def _build_from_feed(odds_data: dict) -> dict:
 def _build_static(force_refresh: bool) -> dict:
     """Demo card from data/card.json — used only when there are no live odds."""
     card = _load(CARD_FILE)
-    stats = _fighter_stats()
+    lookup = _build_matcher()
     odds_data = odds.build_odds_index(force_refresh=force_refresh)
     index = odds_data["index"]
 
@@ -175,7 +206,7 @@ def _build_static(force_refresh: bool) -> dict:
             market_a = market_b = odds_a = odds_b = None
             books = 0
 
-        scored = _score_fight(a, b, stats, market_a, market_b)
+        scored = _score_fight(a, b, lookup, market_a, market_b)
         if scored["confidence"] == "high":
             high_conf += 1
         fights_out.append({
