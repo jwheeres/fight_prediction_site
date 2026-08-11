@@ -508,7 +508,7 @@
     document.getElementById("event-sub").innerHTML = hc > 0
       ? `${data.fights.length} fights · <b>${hc} high-confidence picks</b>`
       : (data.live_feed ? `${data.fights.length} fights · <b>${eventWord} · live odds</b>` : `${data.fights.length} fights · <b>live market odds</b>`);
-    document.getElementById("event-pill").textContent = data.live_feed ? "MMA" : data.event.split(":")[0].trim();
+    document.getElementById("event-pill").textContent = data.live_feed ? "UFC" : data.event.split(":")[0].trim();
 
     cards.innerHTML = "";
     if (data.live_feed && groups.length) {
