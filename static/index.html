@@ -259,6 +259,51 @@
   </symbol>
 </svg>
 
+<style>
+  .auth-slot { display: inline-flex; align-items: center; gap: 10px; }
+  .auth-btn { font-family: var(--font-body); font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; padding: 7px 13px; border-radius: 8px; cursor: pointer; background: var(--red); border: 1px solid var(--red); color: #fff; }
+  .auth-btn:hover { filter: brightness(1.08); }
+  .auth-btn.ghost { background: var(--surface-2); border-color: var(--border-strong); color: var(--text); }
+  .auth-btn.ghost:hover { border-color: var(--muted); }
+  .auth-user { font-size: 12px; font-weight: 800; letter-spacing: 0.06em; color: var(--gold); text-transform: uppercase; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .modal-backdrop { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.72); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 18px; }
+  .modal-card { width: 100%; max-width: 380px; background: var(--bg-2); border: 1px solid var(--border-strong); border-radius: 14px; padding: 22px; box-shadow: 0 24px 60px rgba(0,0,0,0.5); }
+  .modal-card h2 { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.02em; margin: 0 0 4px; color: var(--ivory); font-size: 26px; }
+  .modal-sub { color: var(--muted); font-size: 13px; margin: 0 0 18px; }
+  .auth-tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+  .auth-tab { flex: 1; padding: 9px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border); color: var(--muted); font-weight: 800; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; font-family: var(--font-body); }
+  .auth-tab.active { background: var(--red-soft); border-color: var(--red); color: #fff; }
+  .auth-field { margin-bottom: 12px; }
+  .auth-field label { display: block; font-size: 10.5px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .auth-field input { width: 100%; padding: 11px 12px; border-radius: 9px; background: var(--surface); border: 1px solid var(--border-strong); color: var(--text); font-size: 14px; font-family: var(--font-body); }
+  .auth-field input:focus { outline: 2px solid var(--blue); outline-offset: 1px; border-color: var(--blue); }
+  .auth-submit { width: 100%; margin-top: 6px; padding: 12px; border-radius: 9px; background: var(--red); border: none; color: #fff; font-weight: 800; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; font-family: var(--font-body); }
+  .auth-submit:hover { filter: brightness(1.08); }
+  .auth-error { color: var(--red); font-size: 12.5px; margin: 10px 0 0; min-height: 16px; font-weight: 600; }
+  .auth-close { float: right; background: none; border: none; color: var(--muted); font-size: 24px; line-height: 1; cursor: pointer; margin: -4px -4px 0 0; }
+  .auth-close:hover { color: var(--text); }
+  .model-tag { display: inline-block; margin-left: 7px; font-size: 9.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; padding: 2px 6px; border-radius: 5px; color: var(--blue); border: 1px solid rgba(91,124,250,0.5); background: rgba(91,124,250,0.1); vertical-align: middle; }
+  tr.model-row .predictor { color: var(--blue); }
+  .me-login-prompt { color: var(--muted); font-size: 13px; }
+</style>
+<div class="modal-backdrop" id="auth-modal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-label="Log in or sign up">
+    <button class="auth-close" id="auth-close" aria-label="Close">&times;</button>
+    <h2 id="auth-title">Log In</h2>
+    <p class="modal-sub">Make your own picks and climb the leaderboard against the model.</p>
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-mode="login" type="button">Log In</button>
+      <button class="auth-tab" data-mode="register" type="button">Sign Up</button>
+    </div>
+    <form id="auth-form">
+      <div class="auth-field"><label for="auth-username">Username</label><input id="auth-username" autocomplete="username" required></div>
+      <div class="auth-field"><label for="auth-password">Password</label><input id="auth-password" type="password" autocomplete="current-password" required></div>
+      <button type="submit" class="auth-submit" id="auth-submit">Log In</button>
+      <p class="auth-error" id="auth-error" role="alert"></p>
+    </form>
+  </div>
+</div>
+
 <nav class="nav">
   <div class="nav-inner">
     <div class="brand"><svg class="logo" aria-hidden="true"><use href="#qualia-mark"/></svg><span class="name">Qualia</span></div>
@@ -267,6 +312,7 @@
       <button class="tab" data-view="results">Track Record</button>
       <button class="tab" data-view="leaderboard">Leaderboard</button>
       <span class="live"><span class="dot"></span>Live</span>
+      <span class="auth-slot" id="auth-slot"></span>
     </div>
   </div>
 </nav>
@@ -415,15 +461,13 @@
       <div class="pick">
         <div class="metric-label">Your Pick</div>
         <div class="pick-buttons" role="group" aria-label="Your pick for ${f.fighter_a} vs ${f.fighter_b}">
-          <button class="pick-btn" data-side="a">${lastName(f.fighter_a)}</button>
-          <button class="pick-btn" data-side="b">${lastName(f.fighter_b)}</button>
+          <button class="pick-btn" data-side="a" data-fighter="${f.fighter_a}">${lastName(f.fighter_a)}</button>
+          <button class="pick-btn" data-side="b" data-fighter="${f.fighter_b}">${lastName(f.fighter_b)}</button>
         </div>
       </div>`;
-    el.querySelectorAll(".pick-btn").forEach((btn) => btn.addEventListener("click", () => {
-      const already = btn.classList.contains("selected");
-      el.querySelectorAll(".pick-btn").forEach((b) => b.classList.remove("selected"));
-      if (!already) btn.classList.add("selected");
-    }));
+    el.dataset.fightKey = `${f.fighter_a} vs ${f.fighter_b}`;
+    el.querySelectorAll(".pick-btn").forEach((btn) =>
+      btn.addEventListener("click", () => onPickClick(el, btn)));
     return el;
   }
 
@@ -451,6 +495,7 @@
   }
 
   function renderCard(data) {
+    currentEvent = data.event;
     const noun = data.live_feed ? "Fights" : "Predictions";
     const hc = data.summary.high_confidence;
     document.getElementById("hero-stats").innerHTML =
@@ -525,6 +570,7 @@
       data.fights.forEach((f) => cards.appendChild(fightCard(f)));
     }
     if (reduce) animateBars(); else requestAnimationFrame(() => requestAnimationFrame(animateBars));
+    loadMyPicks();
   }
 
   function badgeFor(pts) {
@@ -542,29 +588,45 @@
       if (!res.ok) throw new Error("HTTP " + res.status);
       const data = await res.json();
       const board = data.leaderboard;
-      const you = board.find((p) => p.is_you) || { name: "You", points: 0, correct: 0, total: 0, best_streak: 0 };
-      const acc = you.total ? Math.round((you.correct / you.total) * 100) : 0;
-      me.innerHTML = `<h3>${you.name}</h3><div class="sub">Your stats</div>
-        <div class="stat-grid">
-          <div class="stat"><div class="stat-num tnum">${you.points}</div><div class="stat-label">Points</div></div>
-          <div class="stat"><div class="stat-num tnum">${you.correct}/${you.total}</div><div class="stat-label">Correct</div></div>
-          <div class="stat"><div class="stat-num tnum">${acc}%</div><div class="stat-label">Accuracy</div></div>
-          <div class="stat"><div class="stat-num tnum">${you.best_streak}</div><div class="stat-label">Best Streak</div></div>
-        </div>`;
+      const you = currentUser ? board.find((p) => p.name === currentUser) : null;
+      if (you) {
+        const acc = you.total ? Math.round((you.correct / you.total) * 100) : 0;
+        me.innerHTML = `<h3>${you.name}</h3><div class="sub">Your stats</div>
+          <div class="stat-grid">
+            <div class="stat"><div class="stat-num tnum">${you.points}</div><div class="stat-label">Points</div></div>
+            <div class="stat"><div class="stat-num tnum">${you.correct}/${you.total}</div><div class="stat-label">Correct</div></div>
+            <div class="stat"><div class="stat-num tnum">${acc}%</div><div class="stat-label">Accuracy</div></div>
+            <div class="stat"><div class="stat-num tnum">${you.best_streak}</div><div class="stat-label">Best Streak</div></div>
+          </div>`;
+      } else {
+        me.innerHTML = `<h3>${currentUser || "You're not logged in"}</h3>
+          <div class="sub me-login-prompt">${currentUser
+            ? "No scored picks yet — make some on the Predictions tab."
+            : "Log in to make picks and climb the board against the model."}</div>
+          ${currentUser ? "" : '<button class="auth-btn" id="me-login" style="margin-top:12px">Log in</button>'}`;
+        const ml = document.getElementById("me-login");
+        if (ml) ml.addEventListener("click", () => openAuthModal("login"));
+      }
       body.innerHTML = "";
       board.forEach((p, i) => {
         const rank = i + 1;
         const [bcls, blab] = badgeFor(p.points);
         const hot = (p.streak || 0) >= 3 ? " hot" : "";
+        const isYou = currentUser && p.name === currentUser;
         const tr = document.createElement("tr");
-        if (p.is_you) tr.className = "you";
+        tr.className = [isYou ? "you" : "", p.is_model ? "model-row" : ""].join(" ").trim();
         tr.innerHTML = `
           <td class="n"><span class="rank${rank <= 3 ? " top" + rank : ""}">${rank}</span></td>
-          <td><span class="predictor">${p.name}</span>${p.is_you ? '<span class="you-tag">You</span>' : ""}</td>
+          <td><span class="predictor">${p.name}</span>${p.is_model ? '<span class="model-tag">🤖 Model</span>' : ""}${isYou ? '<span class="you-tag">You</span>' : ""}</td>
           <td class="n"><span class="pts">${p.points}</span></td>
           <td class="n tnum">${p.correct}/${p.total}</td>
           <td class="n"><span class="streak-cell${hot}">${p.streak > 0 ? (hot ? "🔥 " : "") + p.streak : "—"}</span></td>
           <td class="n"><span class="bpill ${bcls}">${blab}</span></td>`;
+        if (p.is_model) {
+          tr.style.cursor = "pointer";
+          tr.title = "See the model's track record";
+          tr.addEventListener("click", () => document.querySelector('.tab[data-view="results"]').click());
+        }
         body.appendChild(tr);
       });
     } catch (err) {
@@ -634,6 +696,112 @@
   document.getElementById("hcToggle").addEventListener("change", (e) => document.getElementById("wrap").classList.toggle("hc-only", e.target.checked));
   document.getElementById("refresh-btn").addEventListener("click", () => loadCard(true));
 
+  // ---------- auth + user picks ----------
+  let currentUser = null, currentEvent = null, authMode = "login";
+  const authModal = document.getElementById("auth-modal");
+
+  function setAuthMode(mode) {
+    authMode = mode;
+    document.querySelectorAll(".auth-tab").forEach((t) => t.classList.toggle("active", t.dataset.mode === mode));
+    document.getElementById("auth-title").textContent = mode === "login" ? "Log In" : "Sign Up";
+    document.getElementById("auth-submit").textContent = mode === "login" ? "Log In" : "Create Account";
+    document.getElementById("auth-password").autocomplete = mode === "login" ? "current-password" : "new-password";
+    document.getElementById("auth-error").textContent = "";
+  }
+  function openAuthModal(mode) {
+    setAuthMode(mode || "login");
+    authModal.hidden = false;
+    document.getElementById("auth-username").focus();
+  }
+  function closeAuthModal() { authModal.hidden = true; document.getElementById("auth-error").textContent = ""; }
+
+  document.getElementById("auth-close").addEventListener("click", closeAuthModal);
+  authModal.addEventListener("click", (e) => { if (e.target === authModal) closeAuthModal(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !authModal.hidden) closeAuthModal(); });
+  document.querySelectorAll(".auth-tab").forEach((t) => t.addEventListener("click", () => setAuthMode(t.dataset.mode)));
+
+  document.getElementById("auth-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const username = document.getElementById("auth-username").value.trim();
+    const password = document.getElementById("auth-password").value;
+    const errEl = document.getElementById("auth-error");
+    errEl.textContent = "";
+    try {
+      const res = await fetch("/api/auth/" + authMode, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        credentials: "same-origin", body: JSON.stringify({ username, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) { errEl.textContent = data.error || "Something went wrong."; return; }
+      currentUser = data.user;
+      closeAuthModal();
+      renderAuthSlot();
+      loadMyPicks();
+      reloadLeaderboardIfOpen();
+    } catch (err) { errEl.textContent = "Network error — try again."; }
+  });
+
+  async function doLogout() {
+    try { await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" }); } catch (e) {}
+    currentUser = null;
+    renderAuthSlot();
+    document.querySelectorAll(".pick-btn.selected").forEach((b) => b.classList.remove("selected"));
+    reloadLeaderboardIfOpen();
+  }
+
+  function renderAuthSlot() {
+    const slot = document.getElementById("auth-slot");
+    if (currentUser) {
+      slot.innerHTML = `<span class="auth-user" title="${currentUser}">${currentUser}</span><button class="auth-btn ghost" id="logout-btn">Log out</button>`;
+      document.getElementById("logout-btn").addEventListener("click", doLogout);
+    } else {
+      slot.innerHTML = `<button class="auth-btn" id="login-open">Log in</button>`;
+      document.getElementById("login-open").addEventListener("click", () => openAuthModal("login"));
+    }
+  }
+
+  function reloadLeaderboardIfOpen() {
+    leaderboardLoaded = true;
+    if (!views.leaderboard.hidden) loadLeaderboard();
+    else leaderboardLoaded = false;  // reload lazily next time it's opened
+  }
+
+  async function refreshAuth() {
+    try { const r = await fetch("/api/auth/me", { credentials: "same-origin" }); currentUser = (await r.json()).user; }
+    catch (e) { currentUser = null; }
+    renderAuthSlot();
+    loadMyPicks();
+  }
+
+  async function onPickClick(el, btn) {
+    if (!currentUser) { openAuthModal("login"); return; }
+    const already = btn.classList.contains("selected");
+    el.querySelectorAll(".pick-btn").forEach((b) => b.classList.remove("selected"));
+    if (already) return;  // no server-side un-pick; just clear the highlight
+    btn.classList.add("selected");
+    try {
+      await fetch("/api/picks", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ event: currentEvent, picks: { [el.dataset.fightKey]: btn.dataset.fighter } }),
+      });
+    } catch (e) { /* keep the visual pick; it re-syncs on reload */ }
+  }
+
+  async function loadMyPicks() {
+    if (!currentUser || !currentEvent) return;
+    try {
+      const res = await fetch("/api/picks?event=" + encodeURIComponent(currentEvent), { credentials: "same-origin" });
+      const { picks } = await res.json();
+      document.querySelectorAll(".fight").forEach((el) => {
+        const chosen = picks[el.dataset.fightKey];
+        if (!chosen) return;
+        el.querySelectorAll(".pick-btn").forEach((b) => b.classList.toggle("selected", b.dataset.fighter === chosen));
+      });
+    } catch (e) {}
+  }
+
+  refreshAuth();
   loadCard(false);
 </script>
 </body>
