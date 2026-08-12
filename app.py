@@ -17,6 +17,7 @@ Notes vs. the previous version:
 
 from __future__ import annotations
 
+import hmac
 import os
 from pathlib import Path
 
@@ -73,13 +74,46 @@ def api_odds_status():
     return jsonify(odds_service.get_diagnostics())
 
 
+def _scoring_authorized() -> tuple[bool, str, int]:
+    """Gate the scoring endpoint behind a shared secret.
+
+    Fail-safe: if SCORING_SECRET isn't configured, writes are refused entirely
+    (503) rather than left open — a public, unauthenticated scoring endpoint
+    lets anyone stuff the leaderboard. The scheduled scorer sends the secret in
+    the X-Scoring-Secret header (see scripts/score_event.py).
+    """
+    secret = os.getenv("SCORING_SECRET", "").strip()
+    if not secret:
+        return False, "Scoring is not configured (set SCORING_SECRET).", 503
+    provided = request.headers.get("X-Scoring-Secret", "")
+    if not hmac.compare_digest(provided, secret):
+        return False, "Unauthorized.", 401
+    return True, "", 200
+
+
 @app.route("/api/scheduled/score-results", methods=["POST"])
 def api_score_results():
+    ok, reason, code = _scoring_authorized()
+    if not ok:
+        return jsonify({"error": reason}), code
     payload = request.get_json(silent=True)
     if not payload or "event" not in payload:
         return jsonify({"error": "Body must be JSON with at least an 'event' field."}), 400
     result = store.record_scored_event(payload)
     return jsonify({"status": "ok", **result}), 201
+
+
+@app.route("/api/predictor/<name>")
+def api_predictor(name):
+    """Public profile for one predictor: leaderboard standing + rank. For the
+    model ('Qualia Model') it also includes the honest track-record summary."""
+    entry = store.get_predictor(name)
+    if entry is None:
+        return jsonify({"error": f"No predictor named {name!r}."}), 404
+    profile = {"predictor": entry, "rank": store.get_rank(name)}
+    if entry.get("is_model") or name == "Qualia Model":
+        profile["track_record"] = results_service.get_track_record()["summary"]
+    return jsonify(profile)
 
 
 @app.route("/predict", methods=["POST"])
