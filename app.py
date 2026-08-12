@@ -42,6 +42,13 @@ if app.secret_key == "dev-insecure-secret-change-me":
     app.logger.warning("SECRET_KEY not set — using an insecure dev key. Set SECRET_KEY in production.")
 CORS(app, supports_credentials=True)  # allow the frontend to send the session cookie
 
+# Seed the model onto the leaderboard (needed when DATABASE_URL points at a
+# fresh, empty database). Best-effort: a DB hiccup shouldn't stop the app.
+try:
+    store.ensure_seed()
+except Exception:  # pragma: no cover - defensive
+    app.logger.exception("leaderboard seed failed")
+
 
 @app.route("/")
 def home():

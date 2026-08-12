@@ -17,6 +17,8 @@ from pathlib import Path
 
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from qualia import db
+
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 USERS_FILE = DATA_DIR / "users.json"
 
@@ -33,6 +35,8 @@ _DUMMY_HASH = generate_password_hash("not-a-real-password")
 
 
 def _read() -> dict:
+    if db.enabled():
+        return db.get(USERS_FILE.stem, {})
     if not USERS_FILE.exists():
         return {}
     try:
@@ -42,6 +46,9 @@ def _read() -> dict:
 
 
 def _write(users: dict) -> None:
+    if db.enabled():
+        db.set(USERS_FILE.stem, users)
+        return
     USERS_FILE.parent.mkdir(parents=True, exist_ok=True)
     tmp = USERS_FILE.with_suffix(".json.tmp")
     tmp.write_text(json.dumps(users, indent=2))

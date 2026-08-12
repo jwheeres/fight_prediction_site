@@ -11,6 +11,8 @@ import json
 import threading
 from pathlib import Path
 
+from qualia import db
+
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 LEADERBOARD_FILE = DATA_DIR / "leaderboard.json"
 RESULTS_FILE = DATA_DIR / "results.json"
@@ -19,6 +21,8 @@ _LOCK = threading.Lock()
 
 
 def _read(path: Path, default):
+    if db.enabled():
+        return db.get(path.stem, default)
     if not path.exists():
         return default
     try:
@@ -28,6 +32,9 @@ def _read(path: Path, default):
 
 
 def _write(path: Path, payload) -> None:
+    if db.enabled():
+        db.set(path.stem, payload)
+        return
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(path.suffix + ".tmp")
     tmp.write_text(json.dumps(payload, indent=2, ensure_ascii=False))
@@ -58,6 +65,13 @@ def ensure_predictor(name: str, **extra) -> dict:
         board.append(entry)
         _write(LEADERBOARD_FILE, board)
         return entry
+
+
+def ensure_seed() -> None:
+    """Ensure the model is on the board. In file mode the committed
+    leaderboard.json already seeds it; in DB mode the table starts empty, so
+    this puts 'Qualia Model' there on first run. Idempotent."""
+    ensure_predictor("Qualia Model", is_model=True)
 
 
 def get_predictor(name: str) -> dict | None:
