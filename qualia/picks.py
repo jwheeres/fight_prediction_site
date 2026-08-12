@@ -13,6 +13,8 @@ import json
 import threading
 from pathlib import Path
 
+from qualia import db
+
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 PICKS_FILE = DATA_DIR / "picks.json"
 
@@ -25,6 +27,8 @@ def _norm(name: str) -> str:
 
 
 def _read() -> dict:
+    if db.enabled():
+        return db.get(PICKS_FILE.stem, {})
     if not PICKS_FILE.exists():
         return {}
     try:
@@ -34,6 +38,9 @@ def _read() -> dict:
 
 
 def _write(data: dict) -> None:
+    if db.enabled():
+        db.set(PICKS_FILE.stem, data)
+        return
     PICKS_FILE.parent.mkdir(parents=True, exist_ok=True)
     tmp = PICKS_FILE.with_suffix(".json.tmp")
     tmp.write_text(json.dumps(data, indent=2))
