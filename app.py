@@ -21,19 +21,26 @@ import hmac
 import os
 from pathlib import Path
 
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory, session
 from flask_cors import CORS
 
+from qualia import auth as auth_service
 from qualia import card as card_service
 from qualia import model as model_service
 from qualia import odds as odds_service
+from qualia import picks as picks_service
 from qualia import results as results_service
 from qualia import store
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 
 app = Flask(__name__, static_folder=None)
-CORS(app)  # allow cross-origin calls from the frontend
+# Signs the session cookie that carries the logged-in user. MUST be set in
+# production; the insecure fallback keeps local dev working but is logged.
+app.secret_key = os.getenv("SECRET_KEY") or "dev-insecure-secret-change-me"
+if app.secret_key == "dev-insecure-secret-change-me":
+    app.logger.warning("SECRET_KEY not set — using an insecure dev key. Set SECRET_KEY in production.")
+CORS(app, supports_credentials=True)  # allow the frontend to send the session cookie
 
 
 @app.route("/")
@@ -99,6 +106,11 @@ def api_score_results():
     payload = request.get_json(silent=True)
     if not payload or "event" not in payload:
         return jsonify({"error": "Body must be JSON with at least an 'event' field."}), 400
+    # Grade stored user picks against the actual results and award them on the
+    # same board as the model's picks. `results` is [{fight, winner}, ...].
+    user_awards = picks_service.grade_users(payload["event"], payload.get("results", []))
+    if user_awards:
+        payload = {**payload, "predictor_picks": list(payload.get("predictor_picks", [])) + user_awards}
     result = store.record_scored_event(payload)
     return jsonify({"status": "ok", **result}), 201
 
@@ -170,6 +182,60 @@ def predict():
         return jsonify(response)
     except Exception as exc:  # pragma: no cover - defensive
         return jsonify({"error": "Prediction failed.", "detail": str(exc)}), 400
+
+
+def current_user() -> str | None:
+    return session.get("user")
+
+
+@app.route("/api/auth/register", methods=["POST"])
+def api_register():
+    data = request.get_json(silent=True) or {}
+    ok, err = auth_service.register(data.get("username", ""), data.get("password", ""))
+    if not ok:
+        return jsonify({"error": err}), 400
+    username = auth_service.verify(data.get("username", ""), data.get("password", ""))
+    store.ensure_predictor(username)  # appear on the board from signup
+    session["user"] = username
+    return jsonify({"user": username}), 201
+
+
+@app.route("/api/auth/login", methods=["POST"])
+def api_login():
+    data = request.get_json(silent=True) or {}
+    username = auth_service.verify(data.get("username", ""), data.get("password", ""))
+    if not username:
+        return jsonify({"error": "Invalid username or password."}), 401
+    session["user"] = username
+    return jsonify({"user": username})
+
+
+@app.route("/api/auth/logout", methods=["POST"])
+def api_logout():
+    session.pop("user", None)
+    return jsonify({"status": "ok"})
+
+
+@app.route("/api/auth/me")
+def api_me():
+    return jsonify({"user": current_user()})
+
+
+@app.route("/api/picks", methods=["GET", "POST"])
+def api_picks():
+    user = current_user()
+    if not user:
+        return jsonify({"error": "Log in to make picks."}), 401
+    if request.method == "GET":
+        event = request.args.get("event", "")
+        return jsonify({"event": event, "picks": picks_service.get_picks(user, event)})
+    data = request.get_json(silent=True) or {}
+    event = data.get("event")
+    picks = data.get("picks")
+    if not event or not isinstance(picks, dict) or not picks:
+        return jsonify({"error": "Body needs 'event' and a non-empty 'picks' object."}), 400
+    saved = picks_service.set_picks(user, event, picks)
+    return jsonify({"event": event, "picks": saved}), 201
 
 
 @app.route("/health")

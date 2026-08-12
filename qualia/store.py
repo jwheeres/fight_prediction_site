@@ -45,6 +45,21 @@ def save_leaderboard(board: list[dict]) -> None:
         _write(LEADERBOARD_FILE, board)
 
 
+def ensure_predictor(name: str, **extra) -> dict:
+    """Add a zeroed leaderboard entry for `name` if absent (e.g. on signup),
+    so a new predictor shows on the board before their first scored pick."""
+    with _LOCK:
+        board = _read(LEADERBOARD_FILE, [])
+        for entry in board:
+            if entry.get("name") == name:
+                return entry
+        entry = {"name": name, "points": 0, "correct": 0, "total": 0,
+                 "streak": 0, "best_streak": 0, **extra}
+        board.append(entry)
+        _write(LEADERBOARD_FILE, board)
+        return entry
+
+
 def get_predictor(name: str) -> dict | None:
     for entry in get_leaderboard():
         if entry.get("name") == name:
