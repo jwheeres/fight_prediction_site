@@ -22,15 +22,16 @@ ROOT = Path(__file__).resolve().parent.parent
 TRAINED_FILE = ROOT / "models" / "h2h_model.pkl"
 
 # Per-fighter features, in the exact order the model expects the diffs.
-# NOTE: career win_rate / finish_rate are deliberately EXCLUDED — computed over
-# a fighter's whole career they encode the very outcomes we're predicting
-# (look-ahead leakage) and would inflate accuracy. We keep style, grappling,
-# and physical metrics, which describe *how* a fighter fights. Re-including an
-# as-of (pre-fight) win_rate is the honest follow-up.
+# win_rate is INCLUDED and safe because the training set is built from AS-OF
+# (strictly pre-fight) stats — see scripts/build_fighter_data.py. A career
+# win_rate would leak (it already "knows" the outcome of the fight we're
+# predicting); a pre-fight win_rate does not. finish_rate is left out: as-of it
+# tested within noise and adds a finishes/wins ratio that's brittle on small
+# samples. Physical metrics (reach/height/age) describe the fighter, not results.
 FEATURES = [
     "sig_str_acc", "sig_str_def", "slpm", "sapm",
     "td_acc", "td_def", "td_per15", "sub_per15", "kd_per15",
-    "ctrl_pf", "reach_in", "height_in", "age", "ufc_fights",
+    "ctrl_pf", "win_rate", "reach_in", "height_in", "age", "ufc_fights",
 ]
 
 # Baseline weights (used only if no trained model). Kept to 0-1 style features
