@@ -8,6 +8,9 @@ data/results.json
 .env
 data/fights_synth.csv
 data/odds_cache.json
+# User-generated runtime data — never commit password hashes or user picks
+data/users.json
+data/picks.json
 # Big, regenerable data-prep artifacts (rebuild via scripts/build_fighter_data.py)
 data/_raw/
 data/training.csv
