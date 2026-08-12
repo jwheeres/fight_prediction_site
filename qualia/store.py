@@ -45,6 +45,21 @@ def save_leaderboard(board: list[dict]) -> None:
         _write(LEADERBOARD_FILE, board)
 
 
+def get_predictor(name: str) -> dict | None:
+    for entry in get_leaderboard():
+        if entry.get("name") == name:
+            return entry
+    return None
+
+
+def get_rank(name: str) -> int | None:
+    """1-based rank on the (points-sorted) leaderboard, or None if absent."""
+    for i, entry in enumerate(get_leaderboard(), start=1):
+        if entry.get("name") == name:
+            return i
+    return None
+
+
 def get_results() -> list[dict]:
     return _read(RESULTS_FILE, [])
 

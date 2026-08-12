@@ -1,10 +1,3 @@
 [
-  { "name": "KO_Prophet",     "points": 340, "correct": 34, "total": 42, "streak": 6, "best_streak": 9 },
-  { "name": "OctagonOracle",  "points": 285, "correct": 29, "total": 40, "streak": 4, "best_streak": 7 },
-  { "name": "SubmissionSeer", "points": 210, "correct": 23, "total": 38, "streak": 3, "best_streak": 6 },
-  { "name": "GroundGameGuru", "points": 145, "correct": 17, "total": 30, "streak": 5, "best_streak": 5 },
-  { "name": "FightIQ",        "points": 95,  "correct": 12, "total": 25, "streak": 2, "best_streak": 4 },
-  { "name": "TapologyTom",    "points": 70,  "correct": 9,  "total": 22, "streak": 1, "best_streak": 3 },
-  { "name": "CageWisdom",     "points": 45,  "correct": 6,  "total": 18, "streak": 2, "best_streak": 3 },
-  { "name": "Jordan Heeres",  "points": 0,   "correct": 0,  "total": 0,  "streak": 0, "best_streak": 0, "is_you": true }
+  { "name": "Qualia Model", "points": 0, "correct": 0, "total": 0, "streak": 0, "best_streak": 0, "is_model": true }
 ]

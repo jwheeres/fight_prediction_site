@@ -129,8 +129,12 @@ def main() -> int:
         return 0
 
     url = f"{args.base_url.rstrip('/')}/api/scheduled/score-results"
+    headers = {}
+    secret = os.getenv("SCORING_SECRET", "").strip()
+    if secret:
+        headers["X-Scoring-Secret"] = secret
     try:
-        resp = requests.post(url, json=payload, timeout=15)
+        resp = requests.post(url, json=payload, headers=headers, timeout=15)
         print(f"POST {url} -> {resp.status_code}: {resp.text[:200]}")
         return 0 if resp.status_code in (200, 201, 202) else 2
     except Exception as exc:
