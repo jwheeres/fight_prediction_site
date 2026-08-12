@@ -11,9 +11,12 @@ Stats come from data/fighters_stats.json (built by scripts/build_fighter_data.py
 
 from __future__ import annotations
 
+import logging
 import math
 import pickle
 from pathlib import Path
+
+_LOG = logging.getLogger(__name__)
 
 ROOT = Path(__file__).resolve().parent.parent
 TRAINED_FILE = ROOT / "models" / "h2h_model.pkl"
@@ -38,8 +41,42 @@ _BASELINE_W = {
 }
 
 
+def _feature_list() -> list[str]:
+    """The feature order the active model expects (trained model, else FEATURES)."""
+    return _TRAINED["features"] if _TRAINED is not None else FEATURES
+
+
+def missing_features(stats: dict, feats: list[str] | None = None) -> list[str]:
+    """Model features that are unknown for this fighter (absent or None).
+
+    A present value of 0.0 is NOT missing — a fighter can legitimately have a
+    zero rate (e.g. no knockdowns). Only absent keys or explicit None count as
+    unknown data.
+    """
+    feats = feats if feats is not None else _feature_list()
+    return [k for k in feats if stats.get(k) is None]
+
+
+def _diffs(stats_a: dict, stats_b: dict, feats: list[str]) -> list[float]:
+    """Per-feature A-minus-B differences.
+
+    If a feature is unknown on EITHER side we emit 0.0 (neutral) rather than
+    zero-filling the missing value. Zero-filling would read an unknown reach as
+    "extremely short reach" (0 inches) and skew the prediction into false
+    confidence; a neutral 0 diff lets the remaining known features decide.
+    """
+    out = []
+    for k in feats:
+        va, vb = stats_a.get(k), stats_b.get(k)
+        if va is None or vb is None:
+            out.append(0.0)
+        else:
+            out.append(float(va) - float(vb))
+    return out
+
+
 def diff_vector(stats_a: dict, stats_b: dict) -> list[float]:
-    return [float(stats_a.get(k, 0.0)) - float(stats_b.get(k, 0.0)) for k in FEATURES]
+    return _diffs(stats_a, stats_b, FEATURES)
 
 
 _TRAINED = None
@@ -63,21 +100,35 @@ def _try_load_trained():
     except Exception:
         _TRAINED = None
         MODEL_KIND = "baseline"
+        _LOG.warning(
+            "Trained model at %s failed to load; serving baseline instead.",
+            TRAINED_FILE,
+            exc_info=True,
+        )
 
 
 _try_load_trained()
 
 
 def _baseline_prob(stats_a: dict, stats_b: dict) -> float:
-    s = sum(w * (float(stats_a.get(k, 0.0)) - float(stats_b.get(k, 0.0)))
-            for k, w in _BASELINE_W.items())
+    s = 0.0
+    for k, w in _BASELINE_W.items():
+        va, vb = stats_a.get(k), stats_b.get(k)
+        if va is None or vb is None:
+            continue  # unknown on either side -> contributes nothing
+        s += w * (float(va) - float(vb))
     return 1.0 / (1.0 + math.exp(-s))
 
 
 def win_probability(stats_a: dict, stats_b: dict) -> float:
-    """P(fighter A beats fighter B), in (0, 1)."""
+    """P(fighter A beats fighter B), in (0, 1).
+
+    Features unknown for either fighter are treated as neutral (see _diffs),
+    so a matchup with no data on both sides returns ~0.5 rather than a
+    confident-looking guess. Use missing_features() to tell whether a result
+    was computed on partial data.
+    """
     if _TRAINED is not None:
-        vec = [[float(stats_a.get(k, 0.0)) - float(stats_b.get(k, 0.0))
-                for k in _TRAINED["features"]]]
+        vec = [_diffs(stats_a, stats_b, _TRAINED["features"])]
         return float(_TRAINED["est"].predict_proba(vec)[0][_TRAINED["pos"]])
     return _baseline_prob(stats_a, stats_b)

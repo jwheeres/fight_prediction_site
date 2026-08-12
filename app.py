@@ -117,12 +117,23 @@ def predict():
 
         prob_a = model_service.win_probability(stats_a, stats_b)
         winner = "fighter_a" if prob_a >= 0.5 else "fighter_b"
-        return jsonify({
-            "model_kind": "baseline",
+        response = {
+            "model_kind": model_service.MODEL_KIND,
             "prob_fighter_a": round(prob_a, 4),
             "prob_fighter_b": round(1 - prob_a, 4),
             "predicted_winner": winner,
-        })
+        }
+
+        # Flag predictions computed on partial data so a caller can tell a
+        # confident result from a coin flip forced by missing stats.
+        missing_a = model_service.missing_features(stats_a)
+        missing_b = model_service.missing_features(stats_b)
+        if missing_a or missing_b:
+            response["insufficient_data"] = {
+                "fighter_a_missing": missing_a,
+                "fighter_b_missing": missing_b,
+            }
+        return jsonify(response)
     except Exception as exc:  # pragma: no cover - defensive
         return jsonify({"error": "Prediction failed.", "detail": str(exc)}), 400
 
