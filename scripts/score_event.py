@@ -77,6 +77,54 @@ def load_file_results(path: Path) -> list[dict]:
     return json.loads(path.read_text())
 
 
+def build_payload(card: dict, results: list[dict], source: str) -> dict:
+    """Turn a card + actual results into the scoring payload.
+
+    Includes both the model's graded picks (as the "Qualia Model" predictor) AND
+    a `results` list the app uses to grade every *user's* picks. Both use the
+    CARD's fight key ("Fighter A vs Fighter B") and the card's spelling of the
+    winner, so they line up with the picks users submitted from that card.
+    """
+    # normalized card fighter_a -> (card fighter_a, card fighter_b, model pick)
+    card_fights = {}
+    for f in card["fights"]:
+        predicted = f["fighter_a"] if f["predicted"] == "a" else f["fighter_b"]
+        card_fights[odds_service.normalize_name(f["fighter_a"])] = (
+            f["fighter_a"], f["fighter_b"], predicted,
+        )
+
+    picks, results_out, correct = [], [], 0
+    for r in results:
+        cf = card_fights.get(odds_service.normalize_name(r["fighter_a"]))
+        if not cf:
+            continue
+        card_a, card_b, predicted = cf
+        fight_key = f"{card_a} vs {card_b}"
+        wn = odds_service.normalize_name(r["winner"])
+        if wn == odds_service.normalize_name(card_a):
+            winner_name = card_a
+        elif wn == odds_service.normalize_name(card_b):
+            winner_name = card_b
+        else:
+            winner_name = r["winner"]  # unknown fighter; pass through as-is
+        is_correct = odds_service.normalize_name(predicted) == wn
+        correct += 1 if is_correct else 0
+        picks.append({"name": PREDICTOR_NAME, "correct": is_correct,
+                      "fight": fight_key, "predicted": predicted, "winner": winner_name})
+        results_out.append({"fight": fight_key, "winner": winner_name})
+
+    total = len(picks)
+    accuracy = round(correct / total * 100, 1) if total else 0.0
+    return {
+        "event": card["event"],
+        "event_date": card["event_date"],
+        "source": source,
+        "summary": {"scored": total, "correct": correct, "accuracy_pct": accuracy},
+        "predictor_picks": picks,
+        "results": results_out,  # so the app grades every user's picks too
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--results", type=Path, help="Local results JSON file")
@@ -85,12 +133,6 @@ def main() -> int:
     args = parser.parse_args()
 
     card = card_service.build_card()
-    predictions = {
-        odds_service.normalize_name(f["fighter_a"]): (
-            f["fighter_a"] if f["predicted"] == "a" else f["fighter_b"]
-        )
-        for f in card["fights"]
-    }
 
     results = fetch_live_results()
     source = "odds-api-scores"
@@ -101,29 +143,10 @@ def main() -> int:
         print("No results available (no live scores and no --results file). Nothing to score.")
         return 1
 
-    picks = []
-    correct = 0
-    for r in results:
-        key = odds_service.normalize_name(r["fighter_a"])
-        predicted = predictions.get(key)
-        if not predicted:
-            continue
-        is_correct = odds_service.normalize_name(predicted) == odds_service.normalize_name(r["winner"])
-        correct += 1 if is_correct else 0
-        picks.append({"name": PREDICTOR_NAME, "correct": is_correct,
-                      "fight": f'{r["fighter_a"]} vs {r["fighter_b"]}', "predicted": predicted, "winner": r["winner"]})
-
-    total = len(picks)
-    accuracy = round(correct / total * 100, 1) if total else 0.0
-    payload = {
-        "event": card["event"],
-        "event_date": card["event_date"],
-        "source": source,
-        "summary": {"scored": total, "correct": correct, "accuracy_pct": accuracy},
-        "predictor_picks": picks,
-    }
-
-    print(f"Scored {total} fights: {correct} correct ({accuracy}%) for '{PREDICTOR_NAME}'")
+    payload = build_payload(card, results, source)
+    s = payload["summary"]
+    print(f"Scored {s['scored']} fights: {s['correct']} correct ({s['accuracy_pct']}%) "
+          f"for '{PREDICTOR_NAME}' + grading {len(payload['results'])} fights for user picks")
     if args.dry_run:
         print(json.dumps(payload["summary"], indent=2))
         return 0
