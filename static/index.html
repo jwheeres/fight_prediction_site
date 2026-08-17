@@ -268,6 +268,13 @@
   .auth-slot { display: inline-flex; align-items: center; gap: 10px; }
   .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(12px); background: var(--bg-2); color: var(--text); border: 1px solid var(--border-strong); border-radius: 10px; padding: 12px 16px; font-size: 13px; font-weight: 600; max-width: 90vw; text-align: center; box-shadow: 0 12px 40px rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s; z-index: 200; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .picks-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 16px 0 4px; padding: 12px 14px; border: 1px solid var(--border-strong); border-radius: 12px; background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015)), var(--bg-2); }
+  .picks-status { font-size: 13px; font-weight: 700; letter-spacing: 0.01em; color: var(--muted); }
+  .picks-status.saved { color: var(--green); }
+  .picks-status.unsaved { color: var(--gold); }
+  .picks-save-btn { flex: none; font-family: var(--font-body); font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; padding: 11px 18px; border-radius: 9px; cursor: pointer; background: var(--red); border: 1px solid var(--red); color: #fff; }
+  .picks-save-btn:hover { filter: brightness(1.08); }
+  .picks-save-btn:disabled { opacity: 0.55; cursor: default; filter: none; }
   .auth-btn { font-family: var(--font-body); font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; padding: 7px 13px; border-radius: 8px; cursor: pointer; background: var(--red); border: 1px solid var(--red); color: #fff; }
   .auth-btn:hover { filter: brightness(1.08); }
   .auth-btn.ghost { background: var(--surface-2); border-color: var(--border-strong); color: var(--text); }
@@ -329,6 +336,10 @@
 <main class="wrap" id="wrap">
   <!-- PREDICTIONS -->
   <div id="view-predictions">
+    <div class="picks-bar" id="picks-bar" hidden>
+      <span class="picks-status" id="picks-status"></span>
+      <button class="picks-save-btn" id="picks-save-btn" type="button">Save Picks</button>
+    </div>
     <section class="hero">
       <svg class="logo-lg" aria-hidden="true"><use href="#qualia-mark"/></svg>
       <div>
@@ -755,6 +766,8 @@
     currentUser = null;
     renderAuthSlot();
     document.querySelectorAll(".pick-btn.selected").forEach((b) => b.classList.remove("selected"));
+    picksDirty = false;
+    updatePicksBar();
     reloadLeaderboardIfOpen();
   }
 
@@ -789,37 +802,74 @@
     clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), 3000);
   }
 
-  async function onPickClick(el, btn) {
+  // Tapping a fighter just SELECTS locally; the "Save Picks" bar commits them.
+  let picksDirty = false;
+
+  function onPickClick(el, btn) {
     if (!currentUser) { openAuthModal("login"); return; }
-    const already = btn.classList.contains("selected");
-    const prev = el.querySelector(".pick-btn.selected");
+    if (btn.classList.contains("selected")) return;  // already your pick
     el.querySelectorAll(".pick-btn").forEach((b) => b.classList.remove("selected"));
-    if (already) return;  // no server-side un-pick; just clear the highlight
     btn.classList.add("selected");
+    picksDirty = true;
+    updatePicksBar();
+  }
+
+  function updatePicksBar() {
+    const bar = document.getElementById("picks-bar");
+    if (!bar) return;
+    const total = document.querySelectorAll("#view-predictions .fight").length;
+    if (!currentUser || total === 0) { bar.hidden = true; return; }
+    bar.hidden = false;
+    const selected = document.querySelectorAll("#view-predictions .fight .pick-btn.selected").length;
+    const status = document.getElementById("picks-status");
+    const save = document.getElementById("picks-save-btn");
+    if (picksDirty) {
+      status.className = "picks-status unsaved";
+      status.textContent = `${selected} of ${total} picked — not saved yet`;
+      save.textContent = "Save Picks";
+    } else if (selected > 0) {
+      status.className = "picks-status saved";
+      status.textContent = `✓ ${selected} pick${selected === 1 ? "" : "s"} saved`;
+      save.textContent = "Update";
+    } else {
+      status.className = "picks-status";
+      status.textContent = "Tap a winner in each bout, then Save";
+      save.textContent = "Save Picks";
+    }
+  }
+
+  async function saveAllPicks() {
+    if (!currentUser) { openAuthModal("login"); return; }
+    const picks = {};
+    document.querySelectorAll("#view-predictions .fight").forEach((el) => {
+      const sel = el.querySelector(".pick-btn.selected");
+      if (sel) picks[el.dataset.fightKey] = sel.dataset.fighter;
+    });
+    if (!Object.keys(picks).length) { toast("Tap a winner in a bout first, then Save."); return; }
+    const save = document.getElementById("picks-save-btn");
+    save.disabled = true;
     try {
       const res = await fetch("/api/picks", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify({ event: currentEvent, picks: { [el.dataset.fightKey]: btn.dataset.fighter } }),
+        credentials: "same-origin", body: JSON.stringify({ event: currentEvent, picks }),
       });
-      if (res.status === 401) {  // session expired — the pick was NOT saved
-        btn.classList.remove("selected");
-        currentUser = null; renderAuthSlot();
-        toast("Please log in again — your pick wasn't saved.");
-        openAuthModal("login");
+      if (res.status === 401) {
+        currentUser = null; renderAuthSlot(); updatePicksBar();
+        toast("Please log in again to save your picks."); openAuthModal("login");
         return;
       }
       if (!res.ok) throw new Error("save failed " + res.status);
+      picksDirty = false; updatePicksBar();
+      toast("✓ Picks saved!");
     } catch (e) {
-      // Don't leave a highlight that implies a save that didn't happen.
-      btn.classList.remove("selected");
-      if (prev) prev.classList.add("selected");
-      toast("Couldn't save your pick — check your connection and try again.");
+      toast("Couldn't save — check your connection and try again.");
+    } finally {
+      save.disabled = false;
     }
   }
 
   async function loadMyPicks() {
-    if (!currentUser || !currentEvent) return;
+    if (!currentUser || !currentEvent) { updatePicksBar(); return; }
     try {
       const res = await fetch("/api/picks?event=" + encodeURIComponent(currentEvent), { credentials: "same-origin" });
       const { picks } = await res.json();
@@ -829,8 +879,11 @@
         el.querySelectorAll(".pick-btn").forEach((b) => b.classList.toggle("selected", b.dataset.fighter === chosen));
       });
     } catch (e) {}
+    picksDirty = false;
+    updatePicksBar();
   }
 
+  document.getElementById("picks-save-btn").addEventListener("click", saveAllPicks);
   refreshAuth();
   loadCard(false);
 </script>
