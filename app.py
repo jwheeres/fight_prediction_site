@@ -26,6 +26,7 @@ from flask_cors import CORS
 
 from qualia import auth as auth_service
 from qualia import card as card_service
+from qualia import db
 from qualia import model as model_service
 from qualia import odds as odds_service
 from qualia import picks as picks_service
@@ -245,9 +246,46 @@ def api_picks():
     return jsonify({"event": event, "picks": saved}), 201
 
 
+def _persistence_diag() -> dict:
+    """Where users/picks are stored and whether it will survive a redeploy.
+
+    'ephemeral-files' means DATABASE_URL is NOT set — data lives on the host's
+    temporary disk and is wiped on every redeploy. 'database' means it persists.
+    No secrets are exposed. This is what to check when picks 'disappear'.
+    """
+    if db.enabled():
+        try:
+            db.get("__ping__", None)
+            persistence, database_ok = "database", True
+        except Exception:
+            persistence, database_ok = "database", False
+    else:
+        persistence, database_ok = "ephemeral-files", None
+    try:
+        users = auth_service.count()
+    except Exception:
+        users = None
+    try:
+        pick_events = picks_service.event_count()
+    except Exception:
+        pick_events = None
+    return {
+        "persistence": persistence,
+        "database_ok": database_ok,
+        "secret_key_set": bool(os.getenv("SECRET_KEY", "").strip()),
+        "stored_users": users,
+        "pick_events": pick_events,
+    }
+
+
 @app.route("/health")
 def health():
-    return jsonify({"status": "ok", "model": model_service.MODEL_KIND, "features": len(model_service.FEATURES)})
+    return jsonify({
+        "status": "ok",
+        "model": model_service.MODEL_KIND,
+        "features": len(model_service.FEATURES),
+        **_persistence_diag(),
+    })
 
 
 if __name__ == "__main__":

@@ -107,3 +107,8 @@ def verify(username: str, password: str) -> str | None:
 
 def exists(username: str) -> bool:
     return _find(_read(), username) is not None
+
+
+def count() -> int:
+    """Number of registered users (for the /health diagnostic)."""
+    return len(_read())
