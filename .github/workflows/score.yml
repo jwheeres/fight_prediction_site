@@ -1,0 +1,37 @@
+name: Score UFC card
+
+# Runs the scorer on a schedule so the leaderboard updates itself after fight
+# nights — no manual run needed. It auto-fetches completed results via the Odds
+# API and posts them to the live app. Safe to run daily: scoring an event more
+# than once no longer double-counts (see qualia/store._rebuild_leaderboard).
+#
+# Setup (one time), in the repo's Settings -> Secrets and variables -> Actions:
+#   - Secret  SCORING_SECRET  = the same value set in Render
+#   - Secret  ODDS_API_KEY    = your Odds API key (lets it fetch results)
+#   - Secret  APP_BASE_URL    = your live URL (optional; defaults below)
+# Then it just runs. Use the "Run workflow" button to trigger it by hand too.
+
+on:
+  schedule:
+    - cron: "0 14 * * *"   # daily 14:00 UTC (~morning US) — catches Sat-night cards on Sun
+  workflow_dispatch: {}     # manual "Run workflow" button
+
+permissions:
+  contents: read            # only reads the repo + makes an HTTPS POST; no writes
+
+jobs:
+  score:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Score the latest card
+        env:
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+          SCORING_SECRET: ${{ secrets.SCORING_SECRET }}
+          APP_BASE_URL: ${{ secrets.APP_BASE_URL || 'https://qualia-bets.onrender.com' }}
+        run: python scripts/score_event.py

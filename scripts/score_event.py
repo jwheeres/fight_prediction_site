@@ -140,8 +140,10 @@ def main() -> int:
         results = load_file_results(args.results)
         source = str(args.results)
     if not results:
-        print("No results available (no live scores and no --results file). Nothing to score.")
-        return 1
+        # Not an error — just a day with no completed fights. Exit clean so a
+        # scheduled run (cron) doesn't report a false failure.
+        print("No completed fights to score right now. Nothing to do.")
+        return 0
 
     payload = build_payload(card, results, source)
     s = payload["summary"]

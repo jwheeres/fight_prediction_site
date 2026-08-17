@@ -93,23 +93,20 @@ def get_results() -> list[dict]:
     return _read(RESULTS_FILE, [])
 
 
-def record_scored_event(payload: dict) -> dict:
-    """Persist a scored event and award leaderboard points.
+def _rebuild_leaderboard(results: list[dict]) -> list[dict]:
+    """Recompute every predictor's tally from the full results log.
 
-    This is the endpoint the old Manus scoring task could never reach (it kept
-    getting 404/502). Here it actually lands: we store the event's results and,
-    for any predictor picks included, award +10 per correct pick and update
-    their record/streak.
+    Idempotent by construction: scoring the same event twice produces the same
+    board, so re-runs (and a daily cron) can't inflate points. Existing board
+    membership and flags (registered users at 0, the model's is_model badge)
+    are kept; only the numeric tallies are recomputed.
     """
-    with _LOCK:
-        results = _read(RESULTS_FILE, [])
-        # De-dupe by event name so re-running a score doesn't double count.
-        results = [r for r in results if r.get("event") != payload.get("event")]
-        results.append(payload)
-        _write(RESULTS_FILE, results)
-
-        board = {p["name"]: p for p in _read(LEADERBOARD_FILE, [])}
-        for pick in payload.get("predictor_picks", []):
+    board = {p["name"]: p for p in _read(LEADERBOARD_FILE, [])}
+    for entry in board.values():
+        entry.update(points=0, correct=0, total=0, streak=0, best_streak=0)
+    # Chronological order so streaks are computed correctly across events.
+    for event in sorted(results, key=lambda r: (r.get("event_date") or "", r.get("event") or "")):
+        for pick in event.get("predictor_picks", []):
             name = pick.get("name")
             if not name:
                 continue
@@ -124,7 +121,22 @@ def record_scored_event(payload: dict) -> dict:
                 entry["best_streak"] = max(entry["best_streak"], entry["streak"])
             else:
                 entry["streak"] = 0
-        new_board = list(board.values())
-        _write(LEADERBOARD_FILE, new_board)
+    new_board = list(board.values())
+    _write(LEADERBOARD_FILE, new_board)
+    return new_board
+
+
+def record_scored_event(payload: dict) -> dict:
+    """Persist a scored event and (re)compute the leaderboard from all results.
+
+    Safe to run more than once for the same event — the results log de-dupes by
+    event name and the board is rebuilt from scratch, so points never double.
+    """
+    with _LOCK:
+        results = _read(RESULTS_FILE, [])
+        results = [r for r in results if r.get("event") != payload.get("event")]
+        results.append(payload)
+        _write(RESULTS_FILE, results)
+        new_board = _rebuild_leaderboard(results)
 
     return {"stored_event": payload.get("event"), "leaderboard_size": len(new_board)}
