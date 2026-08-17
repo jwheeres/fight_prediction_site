@@ -68,6 +68,11 @@ def all_picks_for_event(event: str) -> dict[str, dict]:
     return dict(_read().get(event, {}))
 
 
+def event_count() -> int:
+    """Number of events that have any stored picks (for the /health diagnostic)."""
+    return len(_read())
+
+
 def grade_users(event: str, results: list[dict]) -> list[dict]:
     """Grade every stored user pick for `event` against actual results.
 
