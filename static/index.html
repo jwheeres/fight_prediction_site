@@ -24,7 +24,7 @@
   * { box-sizing: border-box; }
   body { margin:0; background: radial-gradient(1200px 600px at 50% -8%, rgba(225,29,42,0.10), transparent 60%), var(--bg); color: var(--text); font-family: var(--font-body); -webkit-font-smoothing: antialiased; line-height: 1.4; }
   .wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 18px 80px; }
-  .display { font-family: var(--font-display); font-weight: 800; text-transform: uppercase; letter-spacing: 0.005em; line-height: 0.98; color: var(--ivory); }
+  .display { font-family: var(--font-display); font-weight: 800; text-transform: uppercase; letter-spacing: 0.005em; line-height: 1.04; color: var(--ivory); }
   .tnum { font-variant-numeric: tabular-nums; }
   [hidden] { display: none !important; }
 
@@ -46,7 +46,7 @@
 
   .hero { display: flex; align-items: center; gap: 20px; padding: 18px 0 20px; }
   .hero .logo-lg { width: 96px; height: 96px; flex: none; }
-  .hero-title { font-size: clamp(30px,8vw,46px); text-wrap: balance; }
+  .hero-title { font-size: clamp(23px,5.8vw,34px); text-wrap: balance; }
   .hero-stats { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px 10px; text-transform: uppercase; letter-spacing: 0.13em; font-size: 11.5px; font-weight: 700; color: var(--faint); }
   .hero-stats b { color: var(--muted); font-weight: 800; }
   .hero-tagline { margin: 8px 0 0; color: var(--gold); font-size: 13.5px; font-weight: 600; letter-spacing: 0.01em; }
@@ -83,7 +83,7 @@
   .tag { text-transform: uppercase; letter-spacing: 0.1em; font-size: 11px; font-weight: 800; padding: 4px 9px; border-radius: 5px; }
   .tag.ppv { color: var(--red); border: 1px solid rgba(225,29,42,0.5); background: var(--red-soft); }
   .event-date { color: var(--muted); text-transform: uppercase; letter-spacing: 0.13em; font-size: 12.5px; font-weight: 700; }
-  .event-title { font-size: clamp(26px,7.4vw,40px); text-wrap: balance; }
+  .event-title { font-size: clamp(20px,5.4vw,28px); text-wrap: balance; }
   .event-sub { margin-top: 12px; color: var(--muted); font-size: 15px; }
   .event-sub b { color: var(--gold); font-weight: 700; }
 
@@ -223,12 +223,12 @@
     .wrap { padding: 0 14px 72px; }
     .hero { gap: 14px; padding: 14px 0 16px; }
     .hero .logo-lg { width: 66px; height: 66px; }
-    .hero-title { font-size: clamp(26px, 10vw, 40px); }
+    .hero-title { font-size: clamp(20px, 6.6vw, 28px); }
     .fight { padding: 18px 15px 20px; }
     /* Stack the matchup so long names get full width (one line) */
     .fighters { grid-template-columns: 1fr; gap: 3px; margin: 16px 0 18px; }
     .fighter.b { text-align: left; }
-    .fighter-name { font-size: clamp(18px, 5.4vw, 23px); }
+    .fighter-name { font-size: clamp(16px, 4.4vw, 20px); }
     .vs { justify-self: start; font-size: 12px; padding: 3px 0; align-self: start; }
     .predicted { margin-top: 4px; }
     .fight-meta { gap: 8px; }
@@ -241,7 +241,7 @@
     .tr-stat { padding: 16px; }
     .tr-stat .big { font-size: 34px; }
     .filters { gap: 12px; padding: 16px 0; }
-    .event-title { font-size: clamp(27px, 9vw, 40px); }
+    .event-title { font-size: clamp(19px, 6vw, 26px); }
   }
   /* Very narrow: keep long matchups readable */
   @media (max-width: 360px) {
