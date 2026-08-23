@@ -51,6 +51,17 @@ except Exception:  # pragma: no cover - defensive
     app.logger.exception("leaderboard seed failed")
 
 
+@app.after_request
+def no_cache_html(response):
+    # The whole UI is one file (static/index.html). Browsers aggressively cache
+    # it, so a fresh deploy wouldn't show up until a hard refresh — that's the
+    # recurring "it didn't update" problem. Tell the browser to revalidate the
+    # HTML shell every load. Static assets (js/css/images) can still be cached.
+    if response.mimetype == "text/html":
+        response.headers["Cache-Control"] = "no-cache, must-revalidate"
+    return response
+
+
 @app.route("/")
 def home():
     return send_from_directory(STATIC_DIR, "index.html")
