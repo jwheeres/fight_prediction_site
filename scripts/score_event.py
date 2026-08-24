@@ -30,6 +30,7 @@ import argparse
 import json
 import os
 import sys
+import time
 from pathlib import Path
 
 import requests
@@ -69,6 +70,45 @@ def fetch_live_results() -> list[dict]:
             continue
         results.append({"fighter_a": ev.get("home_team"), "fighter_b": ev.get("away_team"), "winner": winner})
     return results
+
+
+def wake_app(base_url: str, timeout: int = 90) -> None:
+    """Wake a sleeping host (Render free tier sleeps after inactivity).
+
+    The scored POST used to time out at 15s while the app was still spinning
+    up (~50s cold start), so results never landed. Hit a cheap endpoint first
+    and wait, with a generous read timeout, so the app is warm before we POST.
+    Best-effort: failures here are non-fatal — the POST has its own retries.
+    """
+    try:
+        requests.get(f"{base_url.rstrip('/')}/health", timeout=timeout)
+    except Exception as exc:  # pragma: no cover - network best-effort
+        print(f"  wake ping failed ({exc}); will POST anyway")
+
+
+def post_with_retries(url: str, payload: dict, headers: dict,
+                      attempts: int = 4) -> int:
+    """POST the scored payload, retrying with backoff.
+
+    A cold Render dyno can still be finishing its spin-up when the first
+    request lands, so a single timeout shouldn't lose the whole night's
+    scoring. Uses a long read timeout and backs off 5s, 10s, 20s between tries.
+    """
+    delay = 5
+    for attempt in range(1, attempts + 1):
+        try:
+            resp = requests.post(url, json=payload, headers=headers, timeout=90)
+            print(f"POST {url} -> {resp.status_code}: {resp.text[:200]}")
+            if resp.status_code in (200, 201, 202):
+                return 0
+            # A real HTTP error (4xx/5xx) won't fix itself on retry.
+            return 2
+        except Exception as exc:
+            print(f"  POST attempt {attempt}/{attempts} failed: {exc}")
+            if attempt < attempts:
+                time.sleep(delay)
+                delay *= 2
+    return 2
 
 
 def load_file_results(path: Path) -> list[dict]:
@@ -158,13 +198,10 @@ def main() -> int:
     secret = os.getenv("SCORING_SECRET", "").strip()
     if secret:
         headers["X-Scoring-Secret"] = secret
-    try:
-        resp = requests.post(url, json=payload, headers=headers, timeout=15)
-        print(f"POST {url} -> {resp.status_code}: {resp.text[:200]}")
-        return 0 if resp.status_code in (200, 201, 202) else 2
-    except Exception as exc:
-        print(f"POST failed: {exc}")
-        return 2
+    # Wake the host first (Render sleeps when idle) so the POST doesn't time
+    # out against a cold dyno, then POST with retries.
+    wake_app(args.base_url)
+    return post_with_retries(url, payload, headers)
 
 
 if __name__ == "__main__":

@@ -36,6 +36,47 @@ def test_build_payload_shapes_model_picks_and_results():
     assert {p["name"] for p in payload["predictor_picks"]} == {"Qualia Model"}
 
 
+def test_post_retries_through_a_cold_start(monkeypatch):
+    """A first-attempt timeout (cold Render dyno) must not lose the scoring —
+    the POST retries and succeeds on the second try."""
+    calls = {"n": 0}
+
+    class _Resp:
+        status_code = 201
+        text = "ok"
+
+    def fake_post(url, json, headers, timeout):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            raise score_event.requests.exceptions.ReadTimeout("cold start")
+        return _Resp()
+
+    monkeypatch.setattr(score_event.requests, "post", fake_post)
+    monkeypatch.setattr(score_event.time, "sleep", lambda *_: None)  # no real waiting
+    rc = score_event.post_with_retries("http://x/score", {"event": "e"}, {})
+    assert rc == 0
+    assert calls["n"] == 2  # failed once, succeeded on retry
+
+
+def test_post_stops_on_real_http_error(monkeypatch):
+    """A 4xx/5xx is a real rejection, not a cold start — don't retry it."""
+    calls = {"n": 0}
+
+    class _Resp:
+        status_code = 401
+        text = "unauthorized"
+
+    def fake_post(url, json, headers, timeout):
+        calls["n"] += 1
+        return _Resp()
+
+    monkeypatch.setattr(score_event.requests, "post", fake_post)
+    monkeypatch.setattr(score_event.time, "sleep", lambda *_: None)
+    rc = score_event.post_with_retries("http://x/score", {"event": "e"}, {})
+    assert rc == 2
+    assert calls["n"] == 1  # no pointless retries on a real error
+
+
 @pytest.fixture
 def isolated(tmp_path, monkeypatch):
     monkeypatch.setattr(auth, "USERS_FILE", tmp_path / "users.json")
