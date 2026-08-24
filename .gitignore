@@ -17,3 +17,6 @@ data/training.csv
 # The trained model IS committed (models/h2h_model.pkl); ignore other experiments
 models/*.pkl
 !models/h2h_model.pkl
+
+# RTS match recordings (regenerable)
+rts/recordings/

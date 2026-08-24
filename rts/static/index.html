@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI vs AI — RTS</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%230b0e14'/%3E%3Ccircle cx='5' cy='8' r='3' fill='%23ff4d4d'/%3E%3Ccircle cx='11' cy='8' r='3' fill='%234da6ff'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #0b0e14; --panel: #131822; --panel-2: #1b2130; --line: #262e3d;
+    --text: #e6ebf5; --muted: #8b96ab; --red: #ff4d4d; --blue: #4da6ff;
+    --food: #63d471; --wood: #b98c5a; --gold: #ffcf4d;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  header {
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    padding: 10px 16px; border-bottom: 1px solid var(--line); background: var(--panel);
+  }
+  h1 { font-size: 15px; margin: 0; letter-spacing: .08em; text-transform: uppercase; }
+  .clock { font-size: 22px; font-variant-numeric: tabular-nums; }
+  .spacer { flex: 1; }
+  button {
+    background: var(--panel-2); color: var(--text); border: 1px solid var(--line);
+    border-radius: 6px; padding: 5px 11px; cursor: pointer; font: inherit; font-size: 13px;
+  }
+  button:hover { border-color: #3c4a63; }
+  .status { color: var(--muted); font-size: 12px; }
+
+  main {
+    display: grid; grid-template-columns: 300px minmax(0,1fr) 300px;
+    gap: 12px; padding: 12px; align-items: start;
+  }
+  @media (max-width: 1100px) { main { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 10px; padding: 12px; margin-bottom: 12px;
+  }
+  .card h2 {
+    font-size: 12px; margin: 0 0 10px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--muted); font-weight: 600;
+  }
+  .agent-name { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .kind { color: var(--muted); font-size: 11px; margin: 2px 0 10px; word-break: break-all; }
+
+  .res { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px; }
+  .res div { background: var(--panel-2); border-radius: 6px; padding: 5px 7px; }
+  .res span { display: block; font-size: 10px; color: var(--muted); }
+  .bar { height: 6px; border-radius: 3px; background: var(--panel-2); overflow: hidden; margin: 8px 0 4px; }
+  .bar i { display: block; height: 100%; }
+
+  .kv { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; padding: 2px 0; }
+  .kv b { font-weight: 600; }
+  .muted { color: var(--muted); }
+
+  .plan { font-style: italic; color: #cdd6e6; min-height: 2.4em; margin-bottom: 8px; }
+  ul.orders { list-style: none; margin: 0; padding: 0; font-size: 12px; }
+  ul.orders li { padding: 3px 0; border-top: 1px solid var(--line); }
+  ul.orders li.bad { color: #ff9a9a; }
+
+  canvas { width: 100%; display: block; border-radius: 10px; background: #0f1420; }
+  .thinking { color: var(--gold); font-size: 11px; }
+
+  .feed { max-height: 190px; overflow: auto; font-size: 12.5px; }
+  .feed p { margin: 0 0 6px; }
+  .feed .who { font-weight: 700; }
+  .events p { color: var(--muted); }
+  .banner {
+    text-align: center; padding: 10px; border-radius: 10px; margin-bottom: 12px;
+    background: var(--panel-2); border: 1px solid var(--line); font-size: 16px;
+  }
+  .series { display: flex; gap: 5px; flex-wrap: wrap; font-size: 11px; }
+  .series span { padding: 2px 7px; border-radius: 4px; background: var(--panel-2); }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11px;
+            color: var(--muted); padding: 8px 4px 2px; }
+  .legend b { display: inline-block; width: 9px; height: 9px; margin-right: 5px;
+              vertical-align: -1px; border-radius: 50%; }
+  .legend b.sq { border-radius: 2px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>AI&nbsp;vs&nbsp;AI</h1>
+  <div class="clock" id="clock">0:00</div>
+  <div class="status" id="status">connecting…</div>
+  <div class="spacer"></div>
+  <button id="pause">Pause</button>
+  <button data-speed="0.5">0.5×</button>
+  <button data-speed="1">1×</button>
+  <button data-speed="3">3×</button>
+  <button data-speed="8">8×</button>
+  <button id="restart">New match</button>
+</header>
+
+<main>
+  <section id="left"></section>
+
+  <section>
+    <div id="banner" class="banner" hidden></div>
+    <div class="card" style="padding:8px">
+      <canvas id="map"></canvas>
+      <div class="legend">
+        <span><b class="sq" style="background:#8a94a8"></b>buildings</span>
+        <span><b style="background:#8a94a8"></b>units (big = knight)</span>
+        <span><b style="background:var(--food)"></b>food</span>
+        <span><b style="background:var(--wood)"></b>wood</span>
+        <span><b style="background:var(--gold)"></b>gold</span>
+        <span>resource dots shrink as they are mined out</span>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Commentary</h2>
+      <div class="feed" id="chat"></div>
+    </div>
+    <div class="card">
+      <h2>Match log</h2>
+      <div class="feed events" id="events"></div>
+    </div>
+    <div class="card">
+      <h2>Series</h2>
+      <div class="series" id="series"><span class="muted">first match in progress</span></div>
+    </div>
+  </section>
+
+  <section id="right"></section>
+</main>
+
+<script>
+const KINDS = ["villager","spearman","archer","knight",
+               "town_center","house","barracks","stable","tower"];
+const NODE_COLORS = ["#63d471", "#b98c5a", "#ffcf4d"];
+const BUILDING_SIZE = { town_center: 3.0, house: 1.6, barracks: 2.4, stable: 2.4, tower: 1.6 };
+const UNIT_SIZE = { villager: 0.55, spearman: 0.7, archer: 0.65, knight: 0.95 };
+
+const canvas = document.getElementById("map");
+const ctx = canvas.getContext("2d");
+let latest = null;
+
+function fitCanvas(map) {
+  const cssWidth = canvas.clientWidth;
+  const cssHeight = Math.round(cssWidth * map.h / map.w);
+  const ratio = window.devicePixelRatio || 1;
+  if (canvas.width !== Math.round(cssWidth * ratio)) {
+    canvas.width = Math.round(cssWidth * ratio);
+    canvas.height = Math.round(cssHeight * ratio);
+  }
+  canvas.style.height = cssHeight + "px";
+  return (cssWidth * ratio) / map.w;
+}
+
+function draw(s) {
+  const scale = fitCanvas(s.map);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  ctx.strokeStyle = "#151c2b";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let gx = 8; gx < s.map.w; gx += 8) {
+    ctx.moveTo(gx * scale, 0); ctx.lineTo(gx * scale, canvas.height);
+  }
+  for (let gy = 8; gy < s.map.h; gy += 8) {
+    ctx.moveTo(0, gy * scale); ctx.lineTo(canvas.width, gy * scale);
+  }
+  ctx.stroke();
+
+  // centre line, so "who controls the middle" reads at a glance
+  ctx.strokeStyle = "#243049";
+  ctx.beginPath();
+  ctx.moveTo(canvas.width / 2, 0);
+  ctx.lineTo(canvas.width / 2, canvas.height);
+  ctx.stroke();
+
+  for (const n of s.nodes) {
+    ctx.fillStyle = NODE_COLORS[n.k];
+    ctx.globalAlpha = 0.25 + 0.55 * n.a;
+    ctx.beginPath();
+    ctx.arc(n.x * scale, n.y * scale, (0.55 + 0.5 * n.a) * scale, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  const colors = [s.teams[0].color, s.teams[1].color];
+  for (const e of s.entities) {
+    const kind = KINDS[e.k];
+    const color = colors[e.t];
+    const x = e.x * scale, y = e.y * scale;
+    if (e.b) {
+      const size = (BUILDING_SIZE[kind] || 2) * scale;
+      ctx.globalAlpha = e.c ? 1 : 0.4;
+      ctx.fillStyle = color;
+      ctx.fillRect(x - size / 2, y - size / 2, size, size);
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = "#0b0e14";
+      ctx.lineWidth = Math.max(1, scale * 0.12);
+      ctx.strokeRect(x - size / 2, y - size / 2, size, size);
+      if (kind === "town_center") {
+        ctx.fillStyle = "#0b0e14";
+        ctx.fillRect(x - size / 6, y - size / 6, size / 3, size / 3);
+      }
+      if (e.h < 0.999) hpBar(x, y - size / 2 - scale * 0.5, size, e.h, scale);
+    } else {
+      const r = (UNIT_SIZE[kind] || 0.6) * scale;
+      ctx.fillStyle = kind === "villager" ? shade(color, 0.55) : color;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+      // A dark rim keeps units legible on top of the resource dots.
+      ctx.strokeStyle = kind === "knight" ? "#ffffff" : "#0b0e14";
+      ctx.globalAlpha = kind === "knight" ? 0.55 : 0.8;
+      ctx.lineWidth = Math.max(1, scale * 0.11);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      if (e.h < 0.999) hpBar(x, y - r - scale * 0.45, r * 2.2, e.h, scale);
+    }
+  }
+}
+
+function hpBar(cx, cy, width, frac, scale) {
+  const h = Math.max(1.5, scale * 0.18);
+  ctx.fillStyle = "#000";
+  ctx.globalAlpha = 0.5;
+  ctx.fillRect(cx - width / 2, cy, width, h);
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = frac > 0.5 ? "#63d471" : frac > 0.25 ? "#ffcf4d" : "#ff4d4d";
+  ctx.fillRect(cx - width / 2, cy, width * frac, h);
+}
+
+function shade(hex, factor) {
+  const n = parseInt(hex.slice(1), 16);
+  const c = [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+    .map(v => Math.round(v * factor + 255 * (1 - factor) * 0.25));
+  return `rgb(${c.join(",")})`;
+}
+
+function escapeHtml(text) {
+  return String(text).replace(/[&<>"]/g, c =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+
+function agentPanel(team, agent) {
+  const orders = agent.orders.map((o, i) => {
+    const result = agent.results[i] || "";
+    const bad = /^rejected/.test(result);
+    return `<li class="${bad ? "bad" : ""}">${escapeHtml(JSON.stringify(o))}
+            <br><span class="muted">→ ${escapeHtml(result)}</span></li>`;
+  }).join("") || '<li class="muted">no orders yet</li>';
+
+  const units = Object.entries(team.units)
+    .map(([k, v]) => `<div class="kv"><span>${k}</span><b>${v}</b></div>`).join("")
+    || '<div class="kv muted">no units</div>';
+
+  const popPct = team.cap ? Math.min(100, 100 * team.pop / team.cap) : 0;
+
+  return `
+  <div class="card">
+    <div class="agent-name"><span class="dot" style="background:${team.color}"></span>
+      ${escapeHtml(agent.name)}</div>
+    <div class="kind">${escapeHtml(agent.kind)}
+      ${agent.thinking ? '<span class="thinking">● thinking…</span>' : ""}
+      ${agent.latency_ms ? `<span class="muted">${agent.latency_ms}ms</span>` : ""}</div>
+    <div class="res">
+      <div><span>food</span>${team.resources.food}</div>
+      <div><span>wood</span>${team.resources.wood}</div>
+      <div><span>gold</span>${team.resources.gold}</div>
+    </div>
+    <div class="kv"><span>population</span><b>${team.pop} / ${team.cap}</b></div>
+    <div class="bar"><i style="width:${popPct}%;background:${team.color}"></i></div>
+    <div class="kv"><span>army power</span><b>${team.army_power}</b></div>
+    <div class="kv"><span>score</span><b>${team.score}</b></div>
+    <div class="kv"><span>posture</span><b>${team.posture}</b></div>
+    <div class="kv"><span>kills / losses</span><b>${team.killed} / ${team.lost}</b></div>
+  </div>
+  <div class="card">
+    <h2>Army</h2>${units}
+  </div>
+  <div class="card">
+    <h2>Current plan</h2>
+    <div class="plan">${escapeHtml(agent.plan || "—")}</div>
+    ${agent.error ? `<div class="kv bad" style="color:#ff9a9a">${escapeHtml(agent.error)}</div>` : ""}
+    <h2>Last orders</h2>
+    <ul class="orders">${orders}</ul>
+  </div>`;
+}
+
+function render(s) {
+  latest = s;
+  document.getElementById("clock").textContent = s.clock;
+  document.getElementById("status").textContent =
+    (s.paused ? "paused" : "live") + " · " + s.speed + "× · tick " + s.tick;
+  document.getElementById("left").innerHTML = agentPanel(s.teams[0], s.agents[0]);
+  document.getElementById("right").innerHTML = agentPanel(s.teams[1], s.agents[1]);
+
+  const banner = document.getElementById("banner");
+  if (s.finished) {
+    const who = s.winner === null ? "Draw" : s.teams[s.winner].name + " wins";
+    const color = s.winner === null ? "var(--text)" : s.teams[s.winner].color;
+    banner.innerHTML = `<b style="color:${color}">${who}</b>
+                        <span class="muted"> — ${escapeHtml(s.reason)}</span>`;
+    banner.hidden = false;
+  } else {
+    banner.hidden = true;
+  }
+
+  document.getElementById("chat").innerHTML = s.chat.slice().reverse().map(c =>
+    `<p><span class="who" style="color:${c.color}">${escapeHtml(c.team)}</span>
+     <span class="muted">${escapeHtml(c.text)}</span></p>`).join("")
+    || '<p class="muted">no commentary yet</p>';
+
+  document.getElementById("events").innerHTML = s.events.slice().reverse()
+    .map(e => `<p>${escapeHtml(e.text)}</p>`).join("");
+
+  if (s.series.length) {
+    document.getElementById("series").innerHTML = s.series.map(r =>
+      `<span>${escapeHtml(r.winner || "draw")} · ${escapeHtml(r.clock)}</span>`).join("");
+  }
+  draw(s);
+}
+
+const source = new EventSource("/stream");
+source.onmessage = event => render(JSON.parse(event.data));
+source.onerror = () => {
+  document.getElementById("status").textContent = "reconnecting…";
+};
+
+function control(action, value) {
+  fetch("/control", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ action, value }),
+  });
+}
+document.getElementById("pause").onclick = e => {
+  const pausing = !(latest && latest.paused);
+  control(pausing ? "pause" : "resume");
+  e.target.textContent = pausing ? "Resume" : "Pause";
+};
+document.getElementById("restart").onclick = () => control("restart");
+for (const b of document.querySelectorAll("[data-speed]")) {
+  b.onclick = () => control("speed", parseFloat(b.dataset.speed));
+}
+window.addEventListener("resize", () => latest && draw(latest));
+</script>
+</body>
+</html>
