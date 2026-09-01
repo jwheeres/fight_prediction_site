@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AI vs AI — RTS</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%230b0e14'/%3E%3Ccircle cx='5' cy='8' r='3' fill='%23ff4d4d'/%3E%3Ccircle cx='11' cy='8' r='3' fill='%234da6ff'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%230b0e14'/%3E%3Ccircle cx='5' cy='8' r='3' fill='%23e8503a'/%3E%3Ccircle cx='11' cy='8' r='3' fill='%234aa3d8'/%3E%3C/svg%3E">
 <style>
   :root {
     --bg: #0b0e14; --panel: #131822; --panel-2: #1b2130; --line: #262e3d;
-    --text: #e6ebf5; --muted: #8b96ab; --red: #ff4d4d; --blue: #4da6ff;
-    --food: #63d471; --wood: #b98c5a; --gold: #ffcf4d;
+    --text: #e4e8ee; --muted: #8792a1; --red: #e8503a; --blue: #4aa3d8;
+    --food: #6fb45e; --wood: #b0864f; --gold: #d9a636;
   }
   * { box-sizing: border-box; }
   body {
@@ -133,7 +133,7 @@
 <script>
 const KINDS = ["villager","spearman","archer","knight",
                "town_center","house","barracks","stable","tower"];
-const NODE_COLORS = ["#63d471", "#b98c5a", "#ffcf4d"];
+const NODE_COLORS = ["#6fb45e", "#b0864f", "#d9a636"];
 const BUILDING_SIZE = { town_center: 3.0, house: 1.6, barracks: 2.4, stable: 2.4, tower: 1.6 };
 const UNIT_SIZE = { villager: 0.55, spearman: 0.7, archer: 0.65, knight: 0.95 };
 
@@ -226,7 +226,7 @@ function hpBar(cx, cy, width, frac, scale) {
   ctx.globalAlpha = 0.5;
   ctx.fillRect(cx - width / 2, cy, width, h);
   ctx.globalAlpha = 1;
-  ctx.fillStyle = frac > 0.5 ? "#63d471" : frac > 0.25 ? "#ffcf4d" : "#ff4d4d";
+  ctx.fillStyle = frac > 0.5 ? "#6fb45e" : frac > 0.25 ? "#d9a636" : "#e8503a";
   ctx.fillRect(cx - width / 2, cy, width * frac, h);
 }
 

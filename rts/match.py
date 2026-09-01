@@ -18,7 +18,7 @@ from .engine import World
 from .orders import apply_orders
 from .view import build_view
 
-TEAM_COLORS = ("#ff4d4d", "#4da6ff")
+TEAM_COLORS = ("#e8503a", "#4aa3d8")
 KIND_INDEX = ["villager", "spearman", "archer", "knight",
               "town_center", "house", "barracks", "stable", "tower"]
 NODE_INDEX = ["food", "wood", "gold"]
@@ -38,7 +38,7 @@ class Match:
         self._recorder = open(record_path, "w", encoding="utf-8") if record_path else None
 
         for team, commander in zip(self.world.teams, commanders):
-            self.world.log(f"{team.name} commanded by {commander.name} ({commander.kind})")
+            self.world.log(f"{team.name} is commanded by {commander.kind}")
 
     # -- driving ------------------------------------------------------------
 
